@@ -72,7 +72,7 @@ export const SOCIALS = [
     },
     {
         name: "GitHub",
-        url: "https://github.com/",
+        url: "https://github.com/Dei-web/",
         icon: "github-fill",
         show: true
     }
