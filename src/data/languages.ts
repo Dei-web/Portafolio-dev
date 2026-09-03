@@ -1,34 +1,15 @@
-interface Language {
-    name: string;
-    level: string;
-    description: string;
-    show: boolean;
-}
-
-const languages: Language[] = [
+const languages = [
     {
-        name: "English",
-        level: "Native",
-        description: "I speak fluently and write fluently",
+        name: "Espanol",
+        level: "Nativo",
+        description: "Idioma nativo",
         show: true
     },
     {
-        name: "Spanish",
-        level: "Bilingual",
-        description: "I speak fluently and write fluently",
+        name: "Ingles",
+        level: "Basico-Intermedio",
+        description: "Lectura tecnica y comunicacion basica",
         show: true
-    },
-    {
-        name: "French",
-        level: "B1",
-        description: "I speak fluently and write fluently",
-        show: true
-    },
-    {
-        name: "Italian",
-        level: "B2",
-        description: "I speak fluently and write fluently",
-        show: false
     }
 ];
 

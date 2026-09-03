@@ -1,78 +1,78 @@
 export const SITE = {
-    website: "https://simple-portfolio.vicbox.dev", // replace this with your deployed domain
-    title: "Simple Portfolio",
-    description: "A simple but beautiful portfolio created with Astro",
-    tags: ["portfolio", "Resume cv", "Astro"],
+    website: "https://simple-portfolio.vicbox.dev",
+    title: "Deilhers Perez | Desarrollador de Software",
+    description: "Portafolio de Deilhers Perez de Leon - Desarrollador de Software orientado a IA, Machine Learning y desarrollo web",
+    tags: ["portfolio", "desarrollador", "IA", "Python", "LangChain", "Astro"],
     ogImage: "/og-image.webp",
     logo: "logo",
-    logoText: "Portfolio",
-    lang: "en",
+    logoText: "Deilhers Dev",
+    lang: "es",
     favicon: "/favicon.png",
     repository: "https://github.com/vito8916/simple-portfolio.git",
-    author: "Victor Alvarado",
-    profile: "https://victoralvarado.dev/",
+    author: "Deilhers Perez de Leon",
+    profile: "",
 }
 
 export const ME = {
-    name: "VicBox Dot Dev",
-    profession: "Software Engineer | Full Stack Developer",
-    profileImage: "pp2.png",
+    name: "Deilhers Perez de Leon",
+    profession: "Desarrollador de Software | IA & Machine Learning",
+    profileImage: "profile.jpeg",
     profileFacts: [
         {
-            value: 10,
-            description: "Years of Experience"
+            value: 1,
+            description: "Anos de Experiencia"
+        },
+        {
+            value: 3,
+            description: "Proyectos Realizados"
         },
         {
             value: 5,
-            description: "Completed Projects"
-        },
-        {
-            value: 4,
-            description: "Satisfied Clients"
+            description: "Tecnologias Dominadas"
         }
     ],
     contactInfo: {
-        email: "vicbox.dev@vicbox.dev",
-        linkedin: "https://www.linkedin.com/in/victor-alvaradohn",
+        email: "deilerc27@gmail.com",
+        linkedin: "https://www.linkedin.com/in/deilhers-perez",
         resumeDoc: "resume.pdf",
     },
-    aboutMe: "I am a software engineer with a passion for web development. I have experience in building web " + "applications using modern technologies. I am a self-taught developer who enjoys learning new things and " + "sharing knowledge with others.",
+    aboutMe: "Estudiante de Ingenieria de Sistemas y desarrollador orientado a Inteligencia Artificial, Machine Learning y desarrollo de software. Experiencia practica en desarrollo de soluciones con IA, automatizacion de procesos, integracion de APIs y construccion de aplicaciones web. Interesado en LLM, agentes inteligentes, RAG y tecnologias cloud, con enfoque en aprendizaje continuo, resolucion de problemas y creacion de soluciones escalables.",
 }
 
 export const SOCIALS = [
     {
         name: "Twitter",
-        url: "https://twitter.com/vicbox.dev",
+        url: "https://twitter.com/",
         icon: "twitter-x-fill",
-        show: true
+        show: false
     },
     {
         name: "Facebook",
-        url: "https://www.facebook.com/vicbox.dev",
+        url: "https://www.facebook.com/",
         icon: "facebook-fill",
         show: false
     },
     {
         name: "Instagram",
-        url: "https://www.instagram.com/vicbox.dev",
+        url: "https://www.instagram.com/",
         icon: "instagram-fill",
-        show: true
+        show: false
     },
     {
         name: "Youtube",
-        url: "https://www.youtube.com/vicbox.dev",
+        url: "https://www.youtube.com/",
         icon: "youtube-fill",
-        show: true
+        show: false
     },
     {
         name: "TikTok",
-        url: "https://tiktok.com/vicbox.dev",
+        url: "https://tiktok.com/",
         icon: "tik-fill",
         show: false
     },
     {
         name: "GitHub",
-        url: "https://github.com/vicbox.dev",
+        url: "https://github.com/",
         icon: "github-fill",
         show: true
     }

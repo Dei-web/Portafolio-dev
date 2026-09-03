@@ -1,24 +1,27 @@
-interface SoftSkill {
-    name: string;
-    icon: string;
-}
-
-const softSkills: SoftSkill[] = [
+const softSkills = [
     {
-        name: "Solving Problems",
+        name: "Resolucion de Problemas",
         icon: "tools-fill"
     },
     {
-        name: "Teamwork",
+        name: "Trabajo en Equipo",
         icon: "group-fill"
     },
     {
-        name: "Communication",
+        name: "Comunicacion",
         icon: "message-2-fill"
     },
     {
-        name: "Time Management",
+        name: "Aprendizaje Continuo",
         icon: "time-fill"
+    },
+    {
+        name: "Pensamiento Critico",
+        icon: "tools-fill"
+    },
+    {
+        name: "Adaptabilidad",
+        icon: "time-line"
     }
 ];
 
