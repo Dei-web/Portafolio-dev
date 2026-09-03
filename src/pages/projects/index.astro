@@ -18,7 +18,7 @@ const allProjects = (await getCollection('projects'))
     .sort((a, b) => b.data.startDate.getTime() - a.data.startDate.getTime());
 ---
 
-<Layout title="VicBox Dot Dev | Portfolio | My Projects" description="A list of my best projects" scrollSmooth={false}>
+<Layout title="Deilhers Perez | Mis Proyectos" description="Una lista de mis mejores proyectos" scrollSmooth={false}>
     <>
         <!--Projects Section-->
         <section class="border-bottom">
@@ -38,7 +38,7 @@ const allProjects = (await getCollection('projects'))
                         />
                 ))
             ) : (
-                    <p>No projects found.</p>
+                    <p>No se encontraron proyectos.</p>
             )}
         </section>
     </>

@@ -24,7 +24,7 @@ const allPost = (await getCollection('posts'))
     .sort((a, b) => b.data.publishDate.valueOf() - a.data.publishDate.valueOf());
 ---
 
-<Layout title="Deilhers Perez | Desarrollador de Software" description="A list of my blog posts" scrollSmooth={false}>
+<Layout title="Deilhers Perez | Blog" description="Una lista de mis publicaciones de blog" scrollSmooth={false}>
     <>
         <!--Blog Section-->
         <section class="border-bottom">
@@ -46,7 +46,7 @@ const allPost = (await getCollection('posts'))
                         />
                 ))
             ) : (
-                    <p>No posts found.</p>
+                    <p>No se encontraron publicaciones.</p>
             )
             }
         </section>

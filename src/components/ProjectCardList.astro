@@ -16,13 +16,13 @@ interface Props {
 const { title, tags, cover, id } = Astro.props as Props;
 ---
 
-<a href={`/projects/${id}`} class="project-card" aria-label={`View project "${title}"`}>
+<a href={`/projects/${id}`} class="project-card" aria-label={`Ver proyecto "${title}"`}>
     <div class="flex flex-col md:flex-row md:items-center gap-6">
         <div class="rounded-xl h-[250px] md:w-[150px] md:h-[150px] flex-none overflow-hidden">
             <Image
                     transition:name={`${id}-image`}
                     src={cover}
-                    alt={`Cover preview of the project titled "${title}"`}
+                    alt={`Vista previa de la portada del proyecto "${title}"`}
                     class="object-cover w-full h-full rounded-xl"
             />
         </div>

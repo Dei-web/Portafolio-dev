@@ -28,7 +28,7 @@ const post = {
 };
 ---
 
-<a href=`/blog/${id}` aria-label=`Read post about ${title}` class="flex flex-col md:flex-row md:items-center gap-4">
+<a href=`/blog/${id}` aria-label=`Leer la publicacion sobre ${title}` class="flex flex-col md:flex-row md:items-center gap-4">
     <!--post cover-->
     <div class="flex-none w-full md:w-40 h-40 overflow-hidden rounded-xl">
         <Image transition:name={`${post.id}-image`} src={post.data.cover.src} alt={post.data.cover.alt ?? title}
@@ -40,7 +40,7 @@ const post = {
             <div class="flex items-center gap-1">
                 <ClockIcon class="w-4 h-4 text-gray-500"/>
                 <time class="text-sm text-gray-500" datetime={post.data.publishDate.toISOString()}>
-                    {post.data.publishDate.toDateString()}
+                    {post.data.publishDate.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })}
                 </time>
             </div>
             <span class=" text-gray-500">

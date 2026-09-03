@@ -10,7 +10,7 @@ const { title, tags, cover, id } = Astro.props;
             <Image
                     transition:name={ `${id}-image` }
                     src={cover}
-                    alt={"cover preview of " + title}
+                    alt={"vista previa de la portada de " + title}
                     class={"object-cover w-full h-full rounded-xl"}
                     loading={'eager'}
             />

@@ -1,57 +1,57 @@
 ---
 author: Deilhers Perez de Leon
 publishDate: 2026-09-03T10:00:00Z
-title: "5 IA Skills que mantendran relevantes a los Data Scientists en 2027"
+title: "5 Habilidades de IA que mantendran relevantes a los Cientificos de Datos en 2027"
 tags:
   - IA
   - RAG
   - LLM
-  - Data Science
+  - Ciencia de Datos
 description: >-
-  Anyone can now build an LLM demo with a single API call. Getting that same
-  feature to survive real users, real data, and a real bill is a different job.
-  Ese trabajo se reduce a cinco habilidades: retrieval, routing, guardrails,
-  evals y agent loops.
+  Cualquiera puede construir un demo de LLM con una sola llamada a la API.
+  Pero lograr que esa misma funcionalidad sobreviva a usuarios reales, datos
+  reales y una factura real es otro trabajo. Ese trabajo se reduce a cinco
+  habilidades: retrieval, routing, guardrails, evals y agent loops.
 cover:
   src: './images/5-ai-skills/cover.jpeg'
   alt: 'Cinco habilidades de IA para mantenerse relevante en 2027'
 ---
 
-Anyone can now build an LLM demo with a single API call.
+Hoy en dia, cualquiera puede construir un demo de LLM con una sola llamada a la API.
 
-Getting that same feature to survive real users, real data, and a real bill is a different job.
+Pero lograr que esa misma funcionalidad sobreviva a usuarios reales, datos reales y una factura real es un trabajo totalmente diferente.
 
-That job comes down to five skills that show up in almost every production system I've worked on or reviewed: **retrieval, routing, guardrails, evals, and agent loops**.
+Ese trabajo se resume en cinco habilidades que aparecen en casi todos los sistemas de produccion en los que he trabajado o revisado: **retrieval, routing, guardrails, evals y agent loops**.
 
-Each one answers a question a frontier model alone can't handle.
+Cada una responde a una pregunta que un modelo frontera por si solo no puede manejar.
 
-- Where does my company's data come from?
-- Why is the bill this high?
-- What happens when someone sends a hostile prompt?
-- Did my last change make things better or worse?
-- How do I get a model to do multi-step work without falling over?
+- De donde provienen los datos de mi empresa?
+- Por que la factura es tan alta?
+- Que ocurre cuando alguien envia un prompt hostil?
+- Mi ultimo cambio mejoro o empeoro las cosas?
+- Como consigo que un modelo haga trabajo de multiples pasos sin fallar?
 
-In this article let's go through these 5 skills with code you can run today. Every snippet calls one `call_llm()` function, so you can point it at whatever model you already use, hosted or local.
-
----
-
-> Hey there, I'm **Sara Nóbrega**, an AI engineer focused on deploying machine learning systems into production.
+En este articulo vamos a repasar estas 5 habilidades con codigo que puedes ejecutar hoy. Cada fragmento usa una funcion `call_llm()`, de modo que puedes apuntarla al modelo que ya uses, ya sea alojado o local.
 
 ---
 
-## One wrapper so the code runs anywhere
+> Hola, soy **Sara Nóbrega**, ingeniera de IA enfocada en desplegar sistemas de machine learning en produccion.
 
-Fill in one branch of this function with the SDK you have.
+---
 
-The rest of the article never touches a provider directly, so switching models means editing this function and nothing else.
+## Un wrapper para que el codigo funcione en cualquier lugar
+
+Rellena una de las ramas de esta funcion con el SDK que tengas.
+
+El resto del articulo nunca toca un proveedor directamente, asi que cambiar de modelo significa editar esta funcion y nada mas.
 
 ```python
 def call_llm(prompt: str, system: str = "", model: str = "default") -> str:
-    """Send a prompt to whatever model you have and return the text reply."""
+    """Envia un prompt al modelo que tengas y devuelve la respuesta de texto."""
 
-    # --- Option A: OpenAI-compatible (OpenAI, Together, a local vLLM, Ollama) ---
+    # --- Opcion A: Compatible con OpenAI (OpenAI, Together, un vLLM local, Ollama) ---
     from openai import OpenAI
-    client = OpenAI()  # reads OPENAI_API_KEY; pass base_url=... to hit a local server
+    client = OpenAI()  # lee OPENAI_API_KEY; pasa base_url=... para apuntar a un servidor local
     resp = client.chat.completions.create(
         model="gpt-4o-mini" if model == "default" else model,
         messages=[
@@ -61,9 +61,9 @@ def call_llm(prompt: str, system: str = "", model: str = "default") -> str:
     )
     return resp.choices[0].message.content
 
-    # --- Option B: Anthropic (delete Option A above if you use this) ---
+    # --- Opcion B: Anthropic (borra la Opcion A de arriba si usas esta) ---
     # from anthropic import Anthropic
-    # client = Anthropic()
+    # client = Anthropic()  # lee ANTHROPIC_API_KEY
     # resp = client.messages.create(
     #     model="claude-haiku-4-5" if model == "default" else model,
     #     max_tokens=1024,
@@ -73,322 +73,366 @@ def call_llm(prompt: str, system: str = "", model: str = "default") -> str:
     # return resp.content[0].text
 ```
 
-Everything from here uses `call_llm`. Swap the body once and every example still works.
+Todo lo que sigue usa `call_llm`. Cambia el cuerpo una vez y todos los ejemplos siguen funcionando.
 
 ---
 
-## Skill #1: RAG, grounding a model in your own data
+## Habilidad #1: RAG, anclar el modelo a tus propios datos
 
-A base model doesn't know your company's documents, and fine-tuning on them every time they change is slow and expensive.
+Un modelo base no conoce los documentos de tu empresa, y afinarlo cada vez que cambian es lento y costoso.
 
-**Retrieval-augmented generation (RAG)** fetches the relevant documents at query time and passes them to the model as context.
+La **generacion aumentada por recuperacion (RAG)** obtiene los documentos relevantes en el momento de la consulta y se los pasa al modelo como contexto.
 
-It's still the most common LLM pattern in production, and it's usually the first thing a curriculum teaches.
+Sigue siendo el patron de LLM mas comun en produccion, y normalmente es lo primero que ensena un curriculo.
 
-The interesting work is in the **retrieval**.
+El trabajo interesante esta en la **recuperacion** (retrieval).
 
-Whether you return the right chunk depends on how you split documents (chunking), whether you combine keyword and semantic search (hybrid retrieval), and whether you reorder results before they reach the model (reranking).
+Si devuelves el fragmento correcto depende de como dividas los documentos (chunking), de si combinas busqueda por palabras clave y busqueda semantica (retrieval hibrido), y de si reordenas los resultados antes de que lleguen al modelo (reranking).
 
-Here's a small pipeline that runs on CPU with no external service:
+Aqui tienes un pequeno pipeline que se ejecuta en CPU sin ningun servicio externo:
 
 ```python
 # pip install sentence-transformers numpy
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-embedder = SentenceTransformer("all-MiniLM-L6-v2")  # small, runs on a laptop
+embedder = SentenceTransformer("all-MiniLM-L6-v2")  # pequeno, corre en una laptop
 
+# En la vida real estos vienen de tus propios documentos, divididos en fragmentos.
 docs = [
-    "Our refund policy allows returns within 30 days of purchase.",
-    "Standard shipping takes 3 to 5 business days.",
-    "The Pro plan costs 49 dollars per month and includes priority support.",
-    "Password resets happen from the account settings page.",
+    "Nuestra politica de reembolsos permite devoluciones dentro de los 30 dias posteriores a la compra.",
+    "El envio estandar tarda de 3 a 5 dias habiles.",
+    "El plan Pro cuesta 49 dolares al mes e incluye soporte prioritario.",
+    "El restablecimiento de contrasena se hace desde la pagina de configuracion de la cuenta.",
 ]
 
+# Incrusta la base de conocimiento una sola vez, por adelantado.
 doc_vectors = embedder.encode(docs, normalize_embeddings=True)
 
 def retrieve(question: str, k: int = 2) -> list[str]:
+    """Devuelve los k documentos mas cercanos en significado a la pregunta."""
     q = embedder.encode([question], normalize_embeddings=True)[0]
-    scores = doc_vectors @ q             # cosine similarity
-    top = np.argsort(scores)[::-1][:k]
+    scores = doc_vectors @ q             # similitud por coseno (los vectores estan normalizados)
+    top = np.argsort(scores)[::-1][:k]   # primero los de mayor puntaje
     return [docs[i] for i in top]
 
 def answer(question: str) -> str:
     context = "\n".join(retrieve(question))
-    prompt = f"Answer using only the context below.\n\nContext:\n{context}\n\nQuestion: {question}"
+    prompt = f"Responde usando solo el contexto siguiente.\n\nContexto:\n{context}\n\nPregunta: {question}"
     return call_llm(
         prompt,
-        system="You are a support assistant. If the context doesn't answer the question, say so.",
+        system="Eres un asistente de soporte. Si el contexto no responde la pregunta, dimelo.",
     )
 ```
 
-Notice the question says "send something back" and the matching document says "returns". Keyword search would miss that. The embedding match catches it because the two phrases sit close in vector space.
+Observa que la pregunta dice "enviar algo de vuelta" y el documento que coincide habla de "devoluciones". La busqueda por palabras clave no detectaria esa coincidencia. La coincidencia por embeddings la captura porque ambas frases estan cerca en el espacio vectorial.
 
-### How to learn RAG
+### Como aprender RAG
 
-Build this over your own notes, then break it on purpose. Ask a question the retriever gets wrong and watch the answer go bad. Fix it by changing the chunk size. Add BM25 keyword search (hybrid retrieval) and measure whether answers improve. Add a reranker and compare results before and after.
+Construyelo sobre tus propias notas y luego rompelo a proposito. Haz una pregunta que el recuperador responda mal y observa como la respuesta se degrada. Arreglalo cambiando el tamano del fragmento (chunk). Anade la busqueda por palabras clave BM25 junto a los embeddings (retrieval hibrido) y mide si las respuestas mejoran. Anade un reranker, como un cross-encoder o una API de reranking alojada, y compara los 3 mejores resultados antes y despues.
 
-When you outgrow a numpy array, move to a vector database (FAISS for speed, Qdrant or Pinecone for filtering) and a framework like LlamaIndex or LangChain. To measure quality instead of eyeballing it, **RAGAS** gives you RAG-specific metrics: faithfulness, answer relevancy, context precision, and context recall.
+Cuando superes un array de numpy, pasa a una base de datos vectorial (FAISS para velocidad, Qdrant o Pinecone para filtrado) y a un framework como LlamaIndex o LangChain que gestiona el almacenamiento y la busqueda por ti. Para medir la calidad en lugar de fiarte de la intuicion, **RAGAS** te da metricas especificas de RAG: fidelidad, relevancia de la respuesta, precision del contexto y recuperacion del contexto.
 
 ---
 
-## Skill #2: Model routing - paying for the model the task needs
+## Habilidad #2: Enrutamiento de modelos - pagar por el modelo que la tarea necesita
 
-Sending every request to a frontier model is the fastest way to a bill nobody can explain.
+Enviar cada solicitud a un modelo frontera es la forma mas rapida de conseguir una factura que nadie puede explicar.
 
-**Routing** sends easy, high-volume requests to a small or local model and saves the expensive model for the hard ones.
+El **enrutamiento (routing)** envia las solicitudes faciles y de alto volumen a un modelo pequeno o local, y reserva el modelo caro para las dificiles.
 
-Adding a cache for repeated prompts is reported to cut 40% to 70% off production inference bills, which is why routing went from an advanced trick to a baseline expectation.
+Anadir una cache para los prompts repetidos se reporta que reduce entre 40% y 70% las facturas de inferencia en produccion, por eso el enrutamiento paso de ser un truco avanzado a una expectativa basica.
+
+La habilidad consiste en puntuar una solicitud y elegir un nivel de servicio. Esta es la forma que tiene:
 
 ```python
-CHEAP, MID, FRONTIER = "local-small", "mid-tier", "frontier"
+BARATO, MEDIO, FRONTERA = "local-pequeno", "nivel-medio", "frontera"
 
-def route(task_type: str, input_tokens: int) -> str:
-    # High-volume, narrow tasks go to a small model, often local.
-    if task_type in {"classify", "extract", "tag"} and input_tokens < 2000:
-        return CHEAP
-    # Long context or open-ended reasoning earns the frontier model.
-    if task_type in {"reason", "plan", "code-review"} or input_tokens > 8000:
-        return FRONTIER
-    return MID
+def route(tipo_tarea: str, tokens_entrada: int) -> str:
+    # Las tareas de alto volumen y estrechas van a un modelo pequeno, normalmente local.
+    if tipo_tarea in {"clasificar", "extraer", "etiquetar"} and tokens_entrada < 2000:
+        return BARATO
+    # El contexto largo o el razonamiento abierto merecen el modelo frontera.
+    if tipo_tarea in {"razonar", "planificar", "revisar-codigo"} or tokens_entrada > 8000:
+        return FRONTERA
+    return MEDIO  # el valor predeterminado sensato en el medio
 ```
 
-A router only pays off if you can see what you're spending. Wrap your calls so every one gets logged with its task type, token count, and cost.
+Un enrutador solo rinde si puedes ver cuanto gastas. Envuelve tus llamadas para que cada una quede registrada con su tipo de tarea, cantidad de tokens y costo.
 
 ```python
 import collections
 
-PRICE = {"local-small": 0.0, "mid-tier": 0.60, "frontier": 12.0}
-call_log = []
+# Precio aproximado por millon de tokens. Actualizalos para tu propio proveedor.
+PRECIO = {"local-pequeno": 0.0, "nivel-medio": 0.60, "frontera": 12.0}
+registro_llamadas = []  # en produccion esto va a una base de datos o a tu herramienta de tracing
 
-def tracked_call(prompt: str, task_type: str) -> str:
-    model_tier = route(task_type, input_tokens=len(prompt.split()))
-    tokens = len(prompt.split()) * 1.3
-    cost = tokens / 1_000_000 * PRICE[model_tier]
-    call_log.append({"task": task_type, "tier": model_tier, "cost": cost})
-    return call_llm(prompt, model=model_tier)
+def llamada_conseguida(prompt: str, tipo_tarea: str) -> str:
+    nivel_modelo = route(tipo_tarea, tokens_entrada=len(prompt.split()))
+    tokens = len(prompt.split()) * 1.3   # estimacion burda; usa un tokenizador real en produccion
+    costo = tokens / 1_000_000 * PRECIO[nivel_modelo]
+    registro_llamadas.append({"tarea": tipo_tarea, "nivel": nivel_modelo, "costo": costo})
+    return call_llm(prompt, model=nivel_modelo)
 
-spend = collections.Counter()
-for c in call_log:
-    spend[c["tier"]] += c["cost"]
-print(dict(spend))
+# Despues de un lote de trabajo, ve a donde fue a parar el dinero:
+gasto = collections.Counter()
+for c in registro_llamadas:
+    gasto[c["nivel"]] += c["costo"]
+print(dict(gasto))
 ```
 
-### How to learn model routing
+### Como aprender el enrutamiento de modelos
 
-Log every LLM call in a project you already have, then look at where the money goes. Take the single highest-volume, simplest task and route it to a cheaper model, and measure the quality drop honestly. When hand-rolling gets old, try a routing library like **RouteLLM** or a gateway like **LiteLLM**.
+Registra cada llamada de LLM en un proyecto que ya tengas y luego observa a donde va el dinero. Toma la tarea de mayor volumen y mas simple y enviala a un modelo mas barato, y mide honestamente la caida de calidad. Anade una cache para los prompts repetidos. Cuando el codigo manual se vuelva tedioso, prueba una libreria de enrutamiento como **RouteLLM** o un gateway como **LiteLLM** que se situa frente a muchos proveedores. Anota el costo antes y despues.
 
 ---
 
-## Skill #3: Guardrails - input and output you can defend
+## Habilidad #3: Guardarrailes - entrada y salida que puedas defender
 
-Guardrails moved from a bonus to something interviewers expect you to have.
+Los guardarrailes pasaron de ser un extra a algo que los entrevistadores esperan que tengas.
 
-**Prompt injection** has been the number 1 risk in the OWASP Top 10 for LLM Applications for 2 editions running.
+La **inyeccion de prompts** ha sido el riesgo numero 1 en el OWASP Top 10 para Aplicaciones LLM durante 2 ediciones seguidas.
 
-The reason it works is simple: an LLM reads instructions and data on the same channel, so an attacker can write input that the model treats as a new instruction and follows it, because it can't tell the two apart.
+La razon por la que funciona es simple: un LLM lee las instrucciones y los datos en el mismo canal, asi que un atacante puede escribir una entrada que el modelo trate como una nueva instruccion y la siga, porque no puede distinguir entre ambas.
+
+El trabajo abarca la validacion de entrada y salida, la deteccion de inyecciones y jailbreaks, el enmascaramiento de los datos personales (PII) antes de que lleguen al modelo o a tus registros, y mantener el modelo dentro de su ambito permitido.
+
+Aqui tienes un filtro inicial que puedes ejecutar sin dependencias.
 
 ```python
 import re
 
-INJECTION_PATTERNS = [
+PATRONES_INYECCION = [
     r"ignore (all|the|previous|above) instructions",
     r"disregard .*(system|prompt)",
     r"you are now",
     r"reveal your (system )?prompt",
 ]
 
-def looks_like_injection(text: str) -> bool:
-    return any(re.search(p, text, re.IGNORECASE) for p in INJECTION_PATTERNS)
+def parece_inyeccion(texto: str) -> bool:
+    return any(re.search(p, texto, re.IGNORECASE) for p in PATRONES_INYECCION)
 
-PII_PATTERNS = {
-    "email": r"[\w.+-]+@[\w-]+\.[\w.-]+",
-    "phone": r"\+?\d[\d\s().-]{7,}\d",
+PATRONES_PII = {
+    "correo": r"[\w.+-]+@[\w-]+\.[\w.-]+",
+    "telefono": r"\+?\d[\d\s().-]{7,}\d",
 }
 
-def redact(text: str) -> str:
-    for label, pattern in PII_PATTERNS.items():
-        text = re.sub(pattern, f"[{label}]", text)
-    return text
+def enmascarar(texto: str) -> str:
+    for etiqueta, patron in PATRONES_PII.items():
+        texto = re.sub(patron, f"[{etiqueta}]", texto)
+    return texto
 
-def guarded_answer(user_input: str) -> str:
-    if looks_like_injection(user_input):
-        return "Refused: this looks like an attempt to change my instructions."
-    clean = redact(user_input)
+def respuesta_protegida(entrada_usuario: str) -> str:
+    if parece_inyeccion(entrada_usuario):
+        return "Rechazado: esto parece un intento de cambiar mis instrucciones."
+    limpio = enmascarar(entrada_usuario)
     return call_llm(
-        clean,
-        system="Answer only questions about our product. Refuse anything else.",
+        limpio,
+        system="Responde solo preguntas sobre nuestro producto. Rechaza cualquier otra cosa.",
     )
 ```
 
-A word of warning: treat regex as a first screen only. A determined attacker gets around a pattern list. OWASP's own guidance is **defense in depth**: input validation plus output filtering, least-privilege tools, human approval for sensitive actions, and regular adversarial testing. Production systems reach for **Microsoft Presidio** for PII, and **Guardrails AI** or **NeMo Guardrails** for validation.
+Una advertencia: trata las expresiones regulares como un primer filtro solamente. Un atacante decidido sortea una lista de patrones. La propia orientacion de OWASP es la **defensa en profundidad**: validacion de entrada mas filtrado de salida, herramientas con minimos privilegios, aprobacion humana para acciones sensibles y pruebas adversarias periodicas. Los sistemas de produccion recurren a **Microsoft Presidio** para la PII y a **Guardrails AI** o **NeMo Guardrails** para la validacion, en lugar del regex anterior.
 
-### How to learn guardrails
+### Como aprender guardarrailes
 
-Read the OWASP Top 10 for LLM Applications once, start to finish. Then take your own project's system prompt and try to break it. Get the model to ignore its instructions, then patch the hole. Add input and output validation with one of the libraries above.
+Lee el OWASP Top 10 para Aplicaciones LLM una vez, de principio a fin. Luego toma el prompt del sistema de tu propio proyecto e intenta romperlo. Consigue que el modelo ignore sus instrucciones y luego tapona el agujero. Anade validacion de entrada y salida con una de las librerias anteriores. Anade deteccion de PII antes de que algo llegue al modelo o a los registros. La pregunta de entrevista suele ser "realiza un red teaming sobre tu propio prompt del sistema y nombra los vectores de inyeccion", asi que practica escribir un ataque y su defensa de memoria.
 
 ---
 
-## Skill #4: Evals and observability - knowing whether it works
+## Habilidad #4: Evals y observabilidad - saber si funciona
 
-Change a prompt with no eval and you're guessing. When a multi-step agent fails with no observability, you see the wrong final answer and none of the steps that produced it.
+Cambiar un prompt sin un eval es adivinar. Cuando un agente de multiples pasos falla sin observabilidad, ves la respuesta final equivocada y ninguno de los pasos que la produjeron.
 
-Start with a tiny eval set. You don't need a framework to start. You need 20 to 50 real inputs with the answers you'd accept.
+Empieza con un conjunto de eval pequeno. No necesitas un framework para empezar. Necesitas de 20 a 50 entradas reales con las respuestas que aceptarias. Incluso 8 ejemplos te muestran la forma.
 
 ```python
-eval_set = [
-    {"question": "What is the capital of France?", "expected": "Paris"},
-    {"question": "How many days in a leap year?", "expected": "366"},
-    {"question": "What does CPU stand for?", "expected": "central processing unit"},
+conjunto_eval = [
+    {"pregunta": "Cual es la capital de Francia?", "esperado": "Paris"},
+    {"pregunta": "Cuantos dias tiene un anio bisiesto?", "esperado": "366"},
+    {"pregunta": "Que significa CPU?", "esperado": "unidad central de procesamiento"},
+    # ... amplia esto a 20-50 casos reales de tu propio uso
 ]
 
-def scores_ok(output: str, expected: str) -> bool:
-    return expected.lower() in output.lower()
+def puntuacion_ok(salida: str, esperado: str) -> bool:
+    """Una comprobacion flexible: la respuesta aceptada aparecio en la respuesta?"""
+    return esperado.lower() in salida.lower()
 
-def run_eval(system_prompt: str) -> float:
-    passed = 0
-    for row in eval_set:
-        out = call_llm(row["question"], system=system_prompt)
-        passed += scores_ok(out, row["expected"])
-    score = passed / len(eval_set)
-    print(f"passed {passed}/{len(eval_set)} = {score:.0%}")
-    return score
+def ejecutar_eval(prompt_sistema: str) -> float:
+    aprobados = 0
+    for fila in conjunto_eval:
+        salida = call_llm(fila["pregunta"], system=prompt_sistema)
+        aprobados += puntuacion_ok(salida, fila["esperado"])
+    puntaje = aprobados / len(conjunto_eval)
+    print(f"aprobados {aprobados}/{len(conjunto_eval)} = {puntaje:.0%}")
+    return puntaje
+
+# Ahora puedes comparar dos prompts con un numero en lugar de con intuiciones:
+ejecutar_eval("Responde en una sola palabra.")
+ejecutar_eval("Responde solo con el dato, sin oracion.")
 ```
 
-### Grade open-ended answers with an LLM judge
+La primera vez que cambias un prompt y puedes demostrar que el puntaje se mantuvo, esto deja de sentirse como un trabajo pesado.
 
-Exact matching breaks down for open-ended answers. The common fix is to have a second model grade the first. A binary PASS or FAIL is more reliable than asking a judge for a score from 0 to 100.
+### Calificar respuestas abiertas con un juez LLM
+
+La coincidencia exacta falla con las respuestas abiertas donde la redaccion varia. La solucion habitual es que un segundo modelo califique al primero. La orientacion de DeepEval sobre los jueces destaca un punto que vale la pena recordar: un **APROBADO o REPROBADO binario es mas fiable que pedirle a un juez una puntuacion de 0 a 100**. Asi que mantengamos el veredicto binario.
 
 ```python
-JUDGE_PROMPT = """You grade an assistant's answer against a reference.
-Reply with exactly PASS or FAIL on the first line, then one short reason.
+PROMPT_JUEZ = """Calificas la respuesta de un asistente frente a una referencia.
+Responde exactamente con APROBADO o REPROBADO en la primera linea, luego una razon corta.
 
-Question: {q}
-Reference answer: {ref}
-Assistant answer: {ans}
+Pregunta: {q}
+Respuesta de referencia: {ref}
+Respuesta del asistente: {ans}
 
-The answer PASSES if it is factually consistent with the reference,
-even when the wording is different."""
+La respuesta APROBADO si es factualmente coherente con la referencia,
+incluso cuando la redaccion es diferente."""
 
-def judge(question: str, reference: str, assistant_answer: str) -> bool:
-    verdict = call_llm(JUDGE_PROMPT.format(q=question, ref=reference, ans=assistant_answer))
-    return verdict.strip().upper().startswith("PASS")
+def juez(pregunta: str, referencia: str, respuesta_asistente: str) -> bool:
+    veredicto = call_llm(PROMPT_JUEZ.format(q=pregunta, ref=referencia, ans=respuesta_asistente))
+    return veredicto.strip().upper().startswith("APROBADO")
 ```
 
-### Check the judge against yourself
+### Comprueba al juez contra ti mismo
 
-An unchecked judge is a number you can't trust. LLM judges show known biases: they favor longer answers, they favor whichever answer comes first, and they tend to be too lenient. So before you rely on the judge's numbers, label about 20 answers yourself and measure how often the judge agrees with you. Below ~80% agreement? Rewrite the judge's rubric before you trust a single score.
+Un juez sin comprobar es un numero en el que no puedes confiar. Los jueces LLM muestran sesgos conocidos: favorecen respuestas mas largas, favorecen la respuesta que aparece primero y tienden a ser demasiado indulgentes. Asi que antes de confiar en los numeros del juez, etiqueta unas 20 respuestas tu mismo y mide con que frecuencia el juez esta de acuerdo contigo.
 
-### See inside a failing run
+```python
+# Tu calificas estas 20 a mano: True = buena respuesta, False = mala respuesta.
+etiquetas_humanas = [True, True, False, True, False, True]  # ... tus etiquetas
+etiquetas_juez = [juez(r["q"], r["ref"], r["ans"]) for r in respuestas_calificadas]
 
-Observability is the other half. When something breaks, you want the whole sequence of steps that produced the answer.
+acuerdo = sum(h == j for h, j in zip(etiquetas_humanas, etiquetas_juez)) / len(etiquetas_humanas)
+print(f"el juez coincide conmigo {acuerdo:.0%} de las veces")
+
+# Por debajo de ~80%? Reescribe la rubrica del juez antes de confiar en una sola puntuacion.
+```
+
+### Ver el interior de una ejecucion fallida
+
+La observabilidad es la otra mitad. Cuando algo se rompe, quieres toda la secuencia de pasos que produjo la respuesta. Un pequeño decorador te permitira empezar: registra cada paso, su estado y cuanto tiempo tardo.
 
 ```python
 import time, functools
 
-trace = []
+traza = []
 
-def traced(fn):
+def trazado(fn):
     @functools.wraps(fn)
-    def wrapper(*args, **kwargs):
-        start = time.time()
-        status = "ok"
+    def envoltorio(*args, **kwargs):
+        inicio = time.time()
+        estado = "ok"
         try:
             return fn(*args, **kwargs)
         except Exception as e:
-            status = f"error: {e}"
+            estado = f"error: {e}"
             raise
         finally:
-            trace.append({
-                "step": fn.__name__,
-                "status": status,
-                "seconds": round(time.time() - start, 3),
+            traza.append({
+                "paso": fn.__name__,
+                "estado": estado,
+                "segundos": round(time.time() - inicio, 3),
             })
-    return wrapper
+    return envoltorio
+
+@trazado
+def paso_recuperar(q): return retrieve(q)
+
+@trazado
+def paso_responder(q): return answer(q)
+
+paso_responder("Cuanto tiempo tengo para devolver algo?")
+
+print(traza)  # -> una fila por paso, con tiempos y estado
 ```
 
-In production you don't hand-roll this. The industry settled on the **OpenTelemetry GenAI semantic conventions** as the standard schema for LLM traces. Tools like **Langfuse, LangSmith, Arize Phoenix, and Braintrust** plug into it and give you a UI over every step.
+En produccion no haces esto a mano. La industria se decanto por las **convenciones semanticas GenAI de OpenTelemetry** como el esquema estandar para las trazas de LLM, y OpenTelemetry se graduo en la CNCF en 2026, lo que la convierte en una eleccion segura a largo plazo. Herramientas como **Langfuse, LangSmith, Arize Phoenix y Braintrust** se conectan a ella y te dan una interfaz sobre cada paso.
 
-### How to learn evals
+### Como aprender evals
 
-Start by writing the 20-example set above by hand for a project you already have. Doing it by hand forces you to decide what a good answer even is. Once you want more than exact matching, pick a framework:
+Empieza escribiendo a mano el conjunto de 20 ejemplos anterior para un proyecto que ya tengas. Hacerlo a mano te obliga a decidir que es una buena respuesta, una decision que ninguna herramienta tomara por ti. Cuando quieras mas que una coincidencia exacta, elige un framework:
 
-- **DeepEval** is pytest-native, MIT-licensed, and runs locally with no account. Good first stop for a solo engineer.
-- **promptfoo** is configured in YAML and is strong at comparing models side by side and at red-teaming.
-- **RAGAS** is purpose-built for RAG, with faithfulness and context metrics.
+- **DeepEval** es nativo de pytest, con licencia MIT, y corre localmente sin cuenta, asi que encaja en un pipeline de CI. Buena primera opcion para un ingeniero solitario.
+- **promptfoo** se configura en YAML y es potente para comparar modelos lado a lado y para hacer red-teaming, si la seguridad es tu preocupacion cercana.
+- **RAGAS** esta disenado especificamente para RAG, con las metricas de fidelidad y contexto mencionadas antes.
 
-For production monitoring, add one of Langfuse, LangSmith, Phoenix, or Braintrust on top.
+Para el monitoreo en produccion, anade encima una de Langfuse, LangSmith, Phoenix o Braintrust.
 
 ---
 
-## Skill 5: Agentic loops - multi-step work that recovers
+## Habilidad 5: Bucles agenicos - trabajo de multiples pasos que se recupera
 
-This skill has the most hype and the most churn, so learn it with clear eyes.
+Esta habilidad tiene la mayor hype y la mayor rotacion, asi que aprendela con los ojos bien abiertos.
 
-**Gartner's Q1 2026 survey** found only 17% of organizations have deployed AI agents, though more than 60% expect to within two years. The caution that keeps you credible: Gartner also expects over 40% of agentic AI projects to be scrapped by 2027 over cost, unclear value, or weak governance.
+La **encuesta del Q1 2026 de Gartner** encontro que solo el 17% de las organizaciones han desplegado agentes de IA, aunque mas del 60% espera hacerlo en dos anios. La advertencia que te mantiene creible: Gartner tambien espera que mas del 40% de los proyectos agenicos de IA sean descartados para 2027 por costo, valor poco claro o gobernanza debil.
 
-An agent is a model plus tools plus a loop that keeps calling tools until the task is done. Build it by hand once so you feel where it gets fragile.
+La adopcion avanza por delante de la fiabilidad.
+
+Un agente es un modelo mas herramientas mas un bucle que sigue llamando herramientas hasta que la tarea se completa. Construyelo a mano una vez para sentir donde se vuelve fragil.
 
 ```python
 import json
 
-def search_tool(query: str) -> str:
-    knowledge = {"weather in lisbon": "22C and sunny"}
-    return knowledge.get(query.lower().strip(), "")
+def herramienta_busqueda(consulta: str) -> str:
+    """Sustituto de una llamada real de busqueda o base de datos."""
+    conocimiento = {"clima en lisboa": "22C y soleado"}
+    return conocimiento.get(consulta.lower().strip(), "")  # devuelve "" cuando no encuentra nada
 
-TOOLS = {"search": search_tool}
+HERRAMIENTAS = {"buscar": herramienta_busqueda}
 
-AGENT_SYSTEM = """You solve a task using tools.
-To call a tool, reply with JSON: {"tool": "search", "input": "your query"}
-When you have the final answer, reply with JSON: {"answer": "your answer"}
-Reply with JSON only, nothing else."""
+SISTEMA_AGENTE = """Resuelves una tarea usando herramientas.
+Para llamar a una herramienta, responde con JSON: {"tool": "buscar", "input": "tu consulta"}
+Cuando tengas la respuesta final, responde con JSON: {"answer": "tu respuesta"}
+Responde solo con JSON, nada mas."""
 
-def run_agent(task: str, max_steps: int = 5) -> str:
-    history = f"Task: {task}"
-    for _ in range(max_steps):
-        reply = call_llm(history, system=AGENT_SYSTEM)
+def ejecutar_agente(tarea: str, max_pasos: int = 5) -> str:
+    historial = f"Tarea: {tarea}"
+    for _ in range(max_pasos):
+        respuesta = call_llm(historial, system=SISTEMA_AGENTE)
         try:
-            action = json.loads(reply)
+            accion = json.loads(respuesta)
         except json.JSONDecodeError:
-            history += "\nThat was not valid JSON. Reply with JSON only."
+            historial += "\nEso no era JSON valido. Responde solo con JSON."
             continue
-        if "answer" in action:
-            return action["answer"]
-        tool = TOOLS.get(action.get("tool"))
-        result = tool(action["input"]) if tool else ""
-        if result:
-            history += f"\nTool result: {result}"
+        if "answer" in accion:
+            return accion["answer"]
+        herramienta = HERRAMIENTAS.get(accion.get("tool"))
+        resultado = herramienta(accion["input"]) if herramienta else ""
+        if resultado:
+            historial += f"\nResultado de la herramienta: {resultado}"
         else:
-            history += "\nTool returned nothing useful. Try a different query or answer from what you know."
-    return "Stopped after too many steps."
+            # La herramienta devolvio basura. Informa al agente en lugar de reventar.
+            historial += "\nLa herramienta no devolvio nada util. Prueba otra consulta o responde con lo que sepas."
+    return "Detenido tras demasiados pasos."
 ```
 
-Run this a few times and you'll see how easily it derails: the model returns prose instead of JSON, a tool comes back empty, the loop spins. That fragility is the whole reason frameworks exist. **LangGraph** and **CrewAI** give you state machines and checkpointing, so a run resumes from the step that failed instead of restarting the entire task.
+Ejecutalo unas cuantas veces y veras con que facilidad se descarrila: el modelo devuelve prosa en lugar de JSON, una herramienta regresa vacia, el bucle gira. Esa fragilidad es precisamente la razon por la que existen los frameworks. **LangGraph** y **CrewAI** te dan maquinas de estado y puntos de control (checkpointing), de modo que una ejecucion se reanuda desde el paso que fallo en lugar de reiniciar toda la tarea.
 
-### How to learn agentic loops
+### Como aprender bucles agenicos
 
-Build the loop above by hand and feel where it breaks. Rebuild the same thing in LangGraph or CrewAI and notice what the framework handles for you: state, retries, checkpoints. Force a failure and make the agent recover from it. Then read one postmortem of an agent project that got canceled. The cost and governance lessons are the part no tutorial teaches.
-
----
-
-## Wrap-up
-
-Learn these five skills and you can ground a model in company data, take a large share off the bill, keep the system from leaking or getting jailbroken, prove it works with numbers, and get it to do multi-step work without crashing.
-
-You probably don't need all five at once. Trying to learn them in parallel is how people burn out and learn none of them. **Pick the one your current work touches and go deep.**
-
-- For most people that's **RAG or evals**.
-- **Evals** is where I'd start if nothing else pulls you.
-- **Agent loops** are the one I'd be most careful with — the hype is loud and the cancellation rate is real.
-
-None of this requires a new degree. It takes picking one skill, building something small that breaks, and fixing it. Then the next one.
-
-Open a project you already have and add the pattern it's missing: retrieval if it can't see your data, routing if the bill scares you, evals if you're changing prompts on vibes.
-
-Thank you for reading!
+Construye el bucle anterior a mano y siente donde se rompe. Reconstruye lo mismo en LangGraph o CrewAI y nota que es lo que el framework maneja por ti: estado, reintentos, puntos de control. Fuerza un fallo y haz que el agente se recupere. Dale una herramienta real y maneja el caso en que la herramienta devuelve basura. Luego lee un post-mortem de un proyecto de agentes que fue cancelado. Las lecciones de costo y gobernanza son la parte que ningun tutorial ensena, y conocerlas te convierte en la persona que pregunta si la tarea necesita un agente o basta con una buena llamada de funcion.
 
 ---
 
-> My name is **Sara Nóbrega**. I'm an AI engineer with background in physics.
+## Conclusion
+
+Aprende estas cinco habilidades y podras anclar un modelo en los datos de la empresa, reducir buena parte de la factura, evitar que el sistema filtra informacion o se le haga jailbreak, demostrar con numeros que funciona, y lograr que haga trabajo de multiples pasos sin colapsar.
+
+No necesitas las cinco a la vez. Intentar aprenderlas en paralelo es como la gente se agota y no aprende ninguna. **Elige la que toca tu trabajo actual y profundiza.**
+
+- Para la mayoria de la gente es **RAG o evals**.
+- **Evals** es por donde yo empezaria si nada mas te atrae.
+- **Bucles agenicos** es la que trataria con mas cuidado: la hype es ruidosa y la tasa de cancelacion es real.
+
+Nada de esto requiere un titulo nuevo. Solo requiere elegir una habilidad, construir algo pequeno que se rompa y arreglarlo. Luego la siguiente.
+
+Abre un proyecto que ya tengas y anade el patron que le falta: retrieval si no puede ver tus datos, routing si la factura te asusta, evals si cambias prompts por corazonada.
+
+Gracias por leer!
+
+---
+
+> Mi nombre es **Sara Nóbrega**. Soy ingeniera de IA con formacion en fisica.
 
 **Fuente original:** [5 AI Skills That Will Keep Data Scientists Relevant in 2027](https://towardsdatascience.com/5-ai-skills-that-will-keep-data-scientists-relevant-in-2027/)
