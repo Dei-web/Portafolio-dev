@@ -24,7 +24,7 @@ const {
     tags = SITE.tags,
     author = SITE.author,
     scrollSmooth,
-    canonicalURL = new URL(Astro.url.pathname, Astro.site).href,
+    canonicalURL = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href,
     imageOg = SITE.ogImage,
 } = Astro.props;
 ---
@@ -48,7 +48,7 @@ const {
     <!-- Open Graph / Facebook -->
     <meta property="og:title" content={title}/>
     <meta property="og:description" content={description}/>
-    <meta property="og:url" content={canonicalURL}/>
+    <meta property="og:url" content={canonicalURL}/> 
     <meta property="og:image" content={imageOg}/>
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image"/>

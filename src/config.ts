@@ -1,5 +1,5 @@
 export const SITE = {
-    website: "https://simple-portfolio.vicbox.dev",
+    website: "http://localhost:4321",
     title: "Deilhers Perez | Desarrollador de Software",
     description: "Portafolio de Deilhers Perez de Leon - Desarrollador de Software orientado a IA, Machine Learning y desarrollo web",
     tags: ["portfolio", "desarrollador", "IA", "Python", "LangChain", "Astro"],
@@ -20,7 +20,7 @@ export const ME = {
     profileFacts: [
         {
             value: 1,
-            description: "Anos de Experiencia"
+            description: "Años de Experiencia"
         },
         {
             value: 3,

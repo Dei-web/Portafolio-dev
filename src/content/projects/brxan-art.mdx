@@ -1,0 +1,215 @@
+---
+title: "brxan.art - Portafolio de Diseno Grafico & Arte Digital"
+summary: "Portafolio web profesional para Bryan - Disenador Grafico, Ilustrador Digital y artista visual. Aplicacion SPA construida con React 19 + Vite, desplegada en Vercel, con API serverless en Cloudflare Workers, almacenamiento de imagenes en Cloudflare R2 y base de datos en Supabase."
+tags:
+    - React
+    - Vite
+    - TypeScript
+    - Cloudflare Workers
+    - Supabase
+    - Cloudflare R2
+    - Hono
+    - Vercel
+startDate: 2025-01-15
+endDate: 2025-03-20
+author: Deilhers Perez de Leon
+url: https://bryan-portafolio.vercel.app
+cover: './images/brxan-art/proyecto1.jpeg'
+ogImage: './images/brxan-art/proyecto1.jpeg'
+---
+
+## Tabla de Contenidos
+1. [Descripcion General](#descripcion-general)
+2. [Arquitectura](#arquitectura)
+3. [Stack Tecnologico](#stack-tecnologico)
+4. [Implementacion](#implementacion)
+5. [Estructura del Proyecto](#estructura-del-proyecto)
+6. [Desafios y Aprendizajes](#desafios-y-aprendizajes)
+7. [Reflexiones Finales](#reflexiones-finales)
+
+---
+
+## Descripcion General
+
+**brxan.art** es un portafolio web profesional disenado para **Bryan**, un disenador grafico, ilustrador digital y artista visual. La aplicacion es una SPA (Single Page Application) construida con **React 19** y **Vite**, desplegada en **Vercel**, con una API serverless en **Cloudflare Workers**, almacenamiento de imagenes en **Cloudflare R2** y base de datos PostgreSQL en **Supabase**.
+
+El objetivo principal era crear una plataforma elegante y performante para exhibir el trabajo artistico de Bryan, con un panel de administracion completo que le permitiera gestionar sus proyectos, subir imagenes y moderar comentarios de forma autonoma.
+
+---
+
+## Arquitectura en la Nube
+
+El proyecto sigue una arquitectura **serverless de tres capas** con coste operativo de **$0/mes** dentro de los planes gratuitos de cada proveedor.
+
+```
+                   +---------------------------+
+                   |       USUARIO FINAL       |
+                   +-------------+-------------+
+                                 |
+                                 | HTTPS
+                                 v
+              +-------------------------------------+
+              |          VERCEL (CDN Global)        |
+              |   React SPA + Rewrites (/api ->)    |
+              +-------------------------------------+
+                   |                        |
+            HTML/CSS/JS             /api/* (rewrite)
+                   |                        |
+                   v                        v
+            +-------------+    +---------------------------+
+            |  Navegador  |    |  CLOUDFLARE WORKERS       |
+            |  (SPA)      |    |  Serverless API (Hono)    |
+            +-------------+    +-----------+---------------+
+                                           |
+                              +------------+-------------+
+                              |                          |
+                              v                          v
+                 +---------------------+    +------------------------+
+                 |     SUPABASE        |    |    CLOUDFLARE R2       |
+                 |  PostgreSQL + REST  |    |   Object Storage       |
+                 +---------------------+    +------------------------+
+```
+
+### Por que esta arquitectura
+
+- **Escalabilidad infinita sin servidor**: ni Vercel ni Workers requieren gestionar infraestructura.
+- **Baja latencia global**: Workers corre en 300+ edge locations de Cloudflare.
+- **Coste cero**: todos los servicios operan dentro de planes gratuitos generosos.
+- **Seguridad**: credenciales sensibles viven como secrets encriptados en Cloudflare, nunca en el bundle del frontend.
+- **Desacoplamiento**: frontend y API son proyectos independientes con ciclos de vida separados.
+
+---
+
+## Stack Tecnologico
+
+### Frontend
+| Tecnologia | Uso |
+|---|---|
+| **React 19** | UI con Hooks y Context API |
+| **Vite 6** | Build ultrarapido con HMR |
+| **React Router 7** | Rutas SPA |
+| **CSS nativo** | Estilos con variables CSS y media queries |
+
+### Backend (Cloudflare Worker)
+| Tecnologia | Uso |
+|---|---|
+| **Hono 4** | Framework web ultraligero para Workers |
+| **TypeScript** | Tipado estatico |
+| **@supabase/supabase-js** | Cliente Supabase con service_role |
+| **Wrangler 4** | CLI de Cloudflare para deploy |
+
+### Infraestructura
+| Servicio | Proveedor | Funcion |
+|---|---|---|
+| **Vercel** | Vercel Inc. | Hosting SPA, CDN global, rewrites |
+| **Cloudflare Workers** | Cloudflare | API serverless (edge runtime) |
+| **Cloudflare R2** | Cloudflare | Almacenamiento de objetos S3-compatible |
+| **Supabase** | Supabase Inc. | Base de datos PostgreSQL + API REST |
+
+---
+
+## Implementacion
+
+### Cloudflare Workers - API Serverless
+
+El Worker expone una API REST bajo el framework **Hono** con los siguientes endpoints:
+
+```
+POST   /api/upload              Subir imagen a R2 (multipart/form-data)
+GET    /api/projects            Listar proyectos (con imagenes anidadas)
+GET    /api/projects/:id        Detalle de proyecto
+POST   /api/projects            Crear proyecto (requiere x-admin-password)
+PUT    /api/projects/:id        Actualizar proyecto (requiere x-admin-password)
+DELETE /api/projects/:id        Eliminar proyecto + imagenes R2
+GET    /api/comments            Listar comentarios
+POST   /api/comments            Crear comentario
+DELETE /api/comments/:id        Eliminar comentario
+POST   /api/admin/login         Login con contrasena
+```
+
+### Cloudflare R2 - Almacenamiento de Imagenes
+
+- Bucket: **brxan-portfolio**
+- Acceso publico habilitado via URL de desarrollo
+- Estructura de claves: `imagenes/<archivo>.png` y `proyectos/<project_id>/<uuid>-<nombre>`
+- URLs publicas servidas directamente desde el edge de Cloudflare (sin egress fees)
+
+### Supabase - Base de Datos PostgreSQL
+
+Tres tablas con relaciones en cascada:
+
+```sql
+projects         -> portada, metadata del proyecto
+project_images   -> imagenes asociadas con orden (position)
+comments         -> comentarios por imagen (author, text, image_index)
+```
+
+### Vercel - Hosting del Frontend
+
+El archivo `vercel.json` configura rewrites criticos que transparentan las llamadas `/api/*` del frontend hacia el Worker de Cloudflare, desacoplando completamente el frontend del backend.
+
+---
+
+## Estructura del Proyecto
+
+```
+portafolio_bryan/
+|
+|-- src/                          # SPA React
+|   |-- App.jsx                   # Router principal
+|   |-- components/
+|   |   |-- Admin/                # Panel de administracion
+|   |   |-- ProjectPage.jsx       # Detalle con modal
+|   |   |-- PinDetail.jsx         # Modal imagen + comentarios
+|   |   |-- ProjectsCovers.jsx    # Grilla de portadas
+|   |   +-- Landing.jsx, Hero.jsx, About.jsx...
+|   |-- context/AdminContext.jsx  # Estado global de sesion admin
+|   |-- hooks/                    # Hooks personalizados
+|   +-- data/data.js              # Contenido estatico
+|
+|-- worker/                       # Cloudflare Worker (API)
+|   |-- src/index.ts              # Hono app: rutas /api/*
+|   |-- wrangler.toml             # Config del Worker
+|   +-- seed.sh                   # Subida de imagenes a R2
+|
+|-- supabase/schema.sql           # Esquema de la base de datos
+|-- vercel.json                   # Rewrites SPA + proxy a Workers
++-- vite.config.js                # Config Vite
+```
+
+---
+
+## Desafios y Aprendizajes
+
+### 1. Arquitectura Serverless Multi-Proveedor
+Coordinar tres proveedores de cloud (Vercel, Cloudflare, Supabase) requirio un diseno cuidadoso de la comunicacion entre servicios, manejo de errores y gestion de secrets.
+
+### 2. Storage en el Edge con R2
+Migrar de almacenamiento tradicional a object storage en el edge de Cloudflare presento desafios en la gestion de uploads multipart y la construccion de URLs publicas consistentes.
+
+### 3. Panel de Administracion Seguro
+Implementar autenticacion y autorizacion sin un backend tradicional requirio soluciones creativas con sessionStorage en el cliente y validacion por headers en el servidor.
+
+### 4. Optimizacion de Imagenes Artisticas
+Para un portafolio de arte digital, la calidad de imagen es critica. Se implemento una estrategia que balancea calidad y performance con imagenes servidas desde R2.
+
+### 5. Gestion de Estado Compleja
+La combinacion de proyectos, imagenes anidadas y comentarios requirio un diseno robusto del estado global usando Context API y hooks personalizados.
+
+---
+
+## Reflexiones Finales
+
+1. **Serverless es el futuro para portafolios**: Coste cero, escalabilidad infinita y cero mantenimiento hacen que esta arquitectura sea ideal para proyectos personales y de showcase.
+
+2. **La experiencia del artista importa**: Un portafolio no solo debe ser bonito, sino tambien facil de gestionar. El panel de administracion fue clave para la autonomia del cliente.
+
+3. **Cloudflare Workers es sorprendentemente potente**: El edge runtime de Cloudflare ofrece una latencia increible y un modelo de programacion elegante con Hono.
+
+4. **La seguridad no es opcional**: Mantener credenciales como secrets del Worker y nunca exponerlas al cliente fue una decision arquitectonica fundamental.
+
+5. **Iteracion continua**: El roadmap incluye mejoras como dominio personalizado, CORS restringido, rate limiting y optimizacion automatica de imagenes, demostrando que un proyecto vivo siempre evoluciona.
+
+---
+
+**Hecho con React + Vite, desplegado en Vercel, potenciado por Cloudflare Workers, R2 y Supabase.**

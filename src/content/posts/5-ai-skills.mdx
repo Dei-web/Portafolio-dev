@@ -1,0 +1,394 @@
+---
+author: Deilhers Perez de Leon
+publishDate: 2026-09-03T10:00:00Z
+title: "5 IA Skills que mantendran relevantes a los Data Scientists en 2027"
+tags:
+  - IA
+  - RAG
+  - LLM
+  - Data Science
+description: >-
+  Anyone can now build an LLM demo with a single API call. Getting that same
+  feature to survive real users, real data, and a real bill is a different job.
+  Ese trabajo se reduce a cinco habilidades: retrieval, routing, guardrails,
+  evals y agent loops.
+cover:
+  src: './images/5-ai-skills/cover.jpeg'
+  alt: 'Cinco habilidades de IA para mantenerse relevante en 2027'
+---
+
+Anyone can now build an LLM demo with a single API call.
+
+Getting that same feature to survive real users, real data, and a real bill is a different job.
+
+That job comes down to five skills that show up in almost every production system I've worked on or reviewed: **retrieval, routing, guardrails, evals, and agent loops**.
+
+Each one answers a question a frontier model alone can't handle.
+
+- Where does my company's data come from?
+- Why is the bill this high?
+- What happens when someone sends a hostile prompt?
+- Did my last change make things better or worse?
+- How do I get a model to do multi-step work without falling over?
+
+In this article let's go through these 5 skills with code you can run today. Every snippet calls one `call_llm()` function, so you can point it at whatever model you already use, hosted or local.
+
+---
+
+> Hey there, I'm **Sara Nóbrega**, an AI engineer focused on deploying machine learning systems into production.
+
+---
+
+## One wrapper so the code runs anywhere
+
+Fill in one branch of this function with the SDK you have.
+
+The rest of the article never touches a provider directly, so switching models means editing this function and nothing else.
+
+```python
+def call_llm(prompt: str, system: str = "", model: str = "default") -> str:
+    """Send a prompt to whatever model you have and return the text reply."""
+
+    # --- Option A: OpenAI-compatible (OpenAI, Together, a local vLLM, Ollama) ---
+    from openai import OpenAI
+    client = OpenAI()  # reads OPENAI_API_KEY; pass base_url=... to hit a local server
+    resp = client.chat.completions.create(
+        model="gpt-4o-mini" if model == "default" else model,
+        messages=[
+            {"role": "system", "content": system},
+            {"role": "user", "content": prompt},
+        ],
+    )
+    return resp.choices[0].message.content
+
+    # --- Option B: Anthropic (delete Option A above if you use this) ---
+    # from anthropic import Anthropic
+    # client = Anthropic()
+    # resp = client.messages.create(
+    #     model="claude-haiku-4-5" if model == "default" else model,
+    #     max_tokens=1024,
+    #     system=system,
+    #     messages=[{"role": "user", "content": prompt}],
+    # )
+    # return resp.content[0].text
+```
+
+Everything from here uses `call_llm`. Swap the body once and every example still works.
+
+---
+
+## Skill #1: RAG, grounding a model in your own data
+
+A base model doesn't know your company's documents, and fine-tuning on them every time they change is slow and expensive.
+
+**Retrieval-augmented generation (RAG)** fetches the relevant documents at query time and passes them to the model as context.
+
+It's still the most common LLM pattern in production, and it's usually the first thing a curriculum teaches.
+
+The interesting work is in the **retrieval**.
+
+Whether you return the right chunk depends on how you split documents (chunking), whether you combine keyword and semantic search (hybrid retrieval), and whether you reorder results before they reach the model (reranking).
+
+Here's a small pipeline that runs on CPU with no external service:
+
+```python
+# pip install sentence-transformers numpy
+import numpy as np
+from sentence_transformers import SentenceTransformer
+
+embedder = SentenceTransformer("all-MiniLM-L6-v2")  # small, runs on a laptop
+
+docs = [
+    "Our refund policy allows returns within 30 days of purchase.",
+    "Standard shipping takes 3 to 5 business days.",
+    "The Pro plan costs 49 dollars per month and includes priority support.",
+    "Password resets happen from the account settings page.",
+]
+
+doc_vectors = embedder.encode(docs, normalize_embeddings=True)
+
+def retrieve(question: str, k: int = 2) -> list[str]:
+    q = embedder.encode([question], normalize_embeddings=True)[0]
+    scores = doc_vectors @ q             # cosine similarity
+    top = np.argsort(scores)[::-1][:k]
+    return [docs[i] for i in top]
+
+def answer(question: str) -> str:
+    context = "\n".join(retrieve(question))
+    prompt = f"Answer using only the context below.\n\nContext:\n{context}\n\nQuestion: {question}"
+    return call_llm(
+        prompt,
+        system="You are a support assistant. If the context doesn't answer the question, say so.",
+    )
+```
+
+Notice the question says "send something back" and the matching document says "returns". Keyword search would miss that. The embedding match catches it because the two phrases sit close in vector space.
+
+### How to learn RAG
+
+Build this over your own notes, then break it on purpose. Ask a question the retriever gets wrong and watch the answer go bad. Fix it by changing the chunk size. Add BM25 keyword search (hybrid retrieval) and measure whether answers improve. Add a reranker and compare results before and after.
+
+When you outgrow a numpy array, move to a vector database (FAISS for speed, Qdrant or Pinecone for filtering) and a framework like LlamaIndex or LangChain. To measure quality instead of eyeballing it, **RAGAS** gives you RAG-specific metrics: faithfulness, answer relevancy, context precision, and context recall.
+
+---
+
+## Skill #2: Model routing - paying for the model the task needs
+
+Sending every request to a frontier model is the fastest way to a bill nobody can explain.
+
+**Routing** sends easy, high-volume requests to a small or local model and saves the expensive model for the hard ones.
+
+Adding a cache for repeated prompts is reported to cut 40% to 70% off production inference bills, which is why routing went from an advanced trick to a baseline expectation.
+
+```python
+CHEAP, MID, FRONTIER = "local-small", "mid-tier", "frontier"
+
+def route(task_type: str, input_tokens: int) -> str:
+    # High-volume, narrow tasks go to a small model, often local.
+    if task_type in {"classify", "extract", "tag"} and input_tokens < 2000:
+        return CHEAP
+    # Long context or open-ended reasoning earns the frontier model.
+    if task_type in {"reason", "plan", "code-review"} or input_tokens > 8000:
+        return FRONTIER
+    return MID
+```
+
+A router only pays off if you can see what you're spending. Wrap your calls so every one gets logged with its task type, token count, and cost.
+
+```python
+import collections
+
+PRICE = {"local-small": 0.0, "mid-tier": 0.60, "frontier": 12.0}
+call_log = []
+
+def tracked_call(prompt: str, task_type: str) -> str:
+    model_tier = route(task_type, input_tokens=len(prompt.split()))
+    tokens = len(prompt.split()) * 1.3
+    cost = tokens / 1_000_000 * PRICE[model_tier]
+    call_log.append({"task": task_type, "tier": model_tier, "cost": cost})
+    return call_llm(prompt, model=model_tier)
+
+spend = collections.Counter()
+for c in call_log:
+    spend[c["tier"]] += c["cost"]
+print(dict(spend))
+```
+
+### How to learn model routing
+
+Log every LLM call in a project you already have, then look at where the money goes. Take the single highest-volume, simplest task and route it to a cheaper model, and measure the quality drop honestly. When hand-rolling gets old, try a routing library like **RouteLLM** or a gateway like **LiteLLM**.
+
+---
+
+## Skill #3: Guardrails - input and output you can defend
+
+Guardrails moved from a bonus to something interviewers expect you to have.
+
+**Prompt injection** has been the number 1 risk in the OWASP Top 10 for LLM Applications for 2 editions running.
+
+The reason it works is simple: an LLM reads instructions and data on the same channel, so an attacker can write input that the model treats as a new instruction and follows it, because it can't tell the two apart.
+
+```python
+import re
+
+INJECTION_PATTERNS = [
+    r"ignore (all|the|previous|above) instructions",
+    r"disregard .*(system|prompt)",
+    r"you are now",
+    r"reveal your (system )?prompt",
+]
+
+def looks_like_injection(text: str) -> bool:
+    return any(re.search(p, text, re.IGNORECASE) for p in INJECTION_PATTERNS)
+
+PII_PATTERNS = {
+    "email": r"[\w.+-]+@[\w-]+\.[\w.-]+",
+    "phone": r"\+?\d[\d\s().-]{7,}\d",
+}
+
+def redact(text: str) -> str:
+    for label, pattern in PII_PATTERNS.items():
+        text = re.sub(pattern, f"[{label}]", text)
+    return text
+
+def guarded_answer(user_input: str) -> str:
+    if looks_like_injection(user_input):
+        return "Refused: this looks like an attempt to change my instructions."
+    clean = redact(user_input)
+    return call_llm(
+        clean,
+        system="Answer only questions about our product. Refuse anything else.",
+    )
+```
+
+A word of warning: treat regex as a first screen only. A determined attacker gets around a pattern list. OWASP's own guidance is **defense in depth**: input validation plus output filtering, least-privilege tools, human approval for sensitive actions, and regular adversarial testing. Production systems reach for **Microsoft Presidio** for PII, and **Guardrails AI** or **NeMo Guardrails** for validation.
+
+### How to learn guardrails
+
+Read the OWASP Top 10 for LLM Applications once, start to finish. Then take your own project's system prompt and try to break it. Get the model to ignore its instructions, then patch the hole. Add input and output validation with one of the libraries above.
+
+---
+
+## Skill #4: Evals and observability - knowing whether it works
+
+Change a prompt with no eval and you're guessing. When a multi-step agent fails with no observability, you see the wrong final answer and none of the steps that produced it.
+
+Start with a tiny eval set. You don't need a framework to start. You need 20 to 50 real inputs with the answers you'd accept.
+
+```python
+eval_set = [
+    {"question": "What is the capital of France?", "expected": "Paris"},
+    {"question": "How many days in a leap year?", "expected": "366"},
+    {"question": "What does CPU stand for?", "expected": "central processing unit"},
+]
+
+def scores_ok(output: str, expected: str) -> bool:
+    return expected.lower() in output.lower()
+
+def run_eval(system_prompt: str) -> float:
+    passed = 0
+    for row in eval_set:
+        out = call_llm(row["question"], system=system_prompt)
+        passed += scores_ok(out, row["expected"])
+    score = passed / len(eval_set)
+    print(f"passed {passed}/{len(eval_set)} = {score:.0%}")
+    return score
+```
+
+### Grade open-ended answers with an LLM judge
+
+Exact matching breaks down for open-ended answers. The common fix is to have a second model grade the first. A binary PASS or FAIL is more reliable than asking a judge for a score from 0 to 100.
+
+```python
+JUDGE_PROMPT = """You grade an assistant's answer against a reference.
+Reply with exactly PASS or FAIL on the first line, then one short reason.
+
+Question: {q}
+Reference answer: {ref}
+Assistant answer: {ans}
+
+The answer PASSES if it is factually consistent with the reference,
+even when the wording is different."""
+
+def judge(question: str, reference: str, assistant_answer: str) -> bool:
+    verdict = call_llm(JUDGE_PROMPT.format(q=question, ref=reference, ans=assistant_answer))
+    return verdict.strip().upper().startswith("PASS")
+```
+
+### Check the judge against yourself
+
+An unchecked judge is a number you can't trust. LLM judges show known biases: they favor longer answers, they favor whichever answer comes first, and they tend to be too lenient. So before you rely on the judge's numbers, label about 20 answers yourself and measure how often the judge agrees with you. Below ~80% agreement? Rewrite the judge's rubric before you trust a single score.
+
+### See inside a failing run
+
+Observability is the other half. When something breaks, you want the whole sequence of steps that produced the answer.
+
+```python
+import time, functools
+
+trace = []
+
+def traced(fn):
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        start = time.time()
+        status = "ok"
+        try:
+            return fn(*args, **kwargs)
+        except Exception as e:
+            status = f"error: {e}"
+            raise
+        finally:
+            trace.append({
+                "step": fn.__name__,
+                "status": status,
+                "seconds": round(time.time() - start, 3),
+            })
+    return wrapper
+```
+
+In production you don't hand-roll this. The industry settled on the **OpenTelemetry GenAI semantic conventions** as the standard schema for LLM traces. Tools like **Langfuse, LangSmith, Arize Phoenix, and Braintrust** plug into it and give you a UI over every step.
+
+### How to learn evals
+
+Start by writing the 20-example set above by hand for a project you already have. Doing it by hand forces you to decide what a good answer even is. Once you want more than exact matching, pick a framework:
+
+- **DeepEval** is pytest-native, MIT-licensed, and runs locally with no account. Good first stop for a solo engineer.
+- **promptfoo** is configured in YAML and is strong at comparing models side by side and at red-teaming.
+- **RAGAS** is purpose-built for RAG, with faithfulness and context metrics.
+
+For production monitoring, add one of Langfuse, LangSmith, Phoenix, or Braintrust on top.
+
+---
+
+## Skill 5: Agentic loops - multi-step work that recovers
+
+This skill has the most hype and the most churn, so learn it with clear eyes.
+
+**Gartner's Q1 2026 survey** found only 17% of organizations have deployed AI agents, though more than 60% expect to within two years. The caution that keeps you credible: Gartner also expects over 40% of agentic AI projects to be scrapped by 2027 over cost, unclear value, or weak governance.
+
+An agent is a model plus tools plus a loop that keeps calling tools until the task is done. Build it by hand once so you feel where it gets fragile.
+
+```python
+import json
+
+def search_tool(query: str) -> str:
+    knowledge = {"weather in lisbon": "22C and sunny"}
+    return knowledge.get(query.lower().strip(), "")
+
+TOOLS = {"search": search_tool}
+
+AGENT_SYSTEM = """You solve a task using tools.
+To call a tool, reply with JSON: {"tool": "search", "input": "your query"}
+When you have the final answer, reply with JSON: {"answer": "your answer"}
+Reply with JSON only, nothing else."""
+
+def run_agent(task: str, max_steps: int = 5) -> str:
+    history = f"Task: {task}"
+    for _ in range(max_steps):
+        reply = call_llm(history, system=AGENT_SYSTEM)
+        try:
+            action = json.loads(reply)
+        except json.JSONDecodeError:
+            history += "\nThat was not valid JSON. Reply with JSON only."
+            continue
+        if "answer" in action:
+            return action["answer"]
+        tool = TOOLS.get(action.get("tool"))
+        result = tool(action["input"]) if tool else ""
+        if result:
+            history += f"\nTool result: {result}"
+        else:
+            history += "\nTool returned nothing useful. Try a different query or answer from what you know."
+    return "Stopped after too many steps."
+```
+
+Run this a few times and you'll see how easily it derails: the model returns prose instead of JSON, a tool comes back empty, the loop spins. That fragility is the whole reason frameworks exist. **LangGraph** and **CrewAI** give you state machines and checkpointing, so a run resumes from the step that failed instead of restarting the entire task.
+
+### How to learn agentic loops
+
+Build the loop above by hand and feel where it breaks. Rebuild the same thing in LangGraph or CrewAI and notice what the framework handles for you: state, retries, checkpoints. Force a failure and make the agent recover from it. Then read one postmortem of an agent project that got canceled. The cost and governance lessons are the part no tutorial teaches.
+
+---
+
+## Wrap-up
+
+Learn these five skills and you can ground a model in company data, take a large share off the bill, keep the system from leaking or getting jailbroken, prove it works with numbers, and get it to do multi-step work without crashing.
+
+You probably don't need all five at once. Trying to learn them in parallel is how people burn out and learn none of them. **Pick the one your current work touches and go deep.**
+
+- For most people that's **RAG or evals**.
+- **Evals** is where I'd start if nothing else pulls you.
+- **Agent loops** are the one I'd be most careful with — the hype is loud and the cancellation rate is real.
+
+None of this requires a new degree. It takes picking one skill, building something small that breaks, and fixing it. Then the next one.
+
+Open a project you already have and add the pattern it's missing: retrieval if it can't see your data, routing if the bill scares you, evals if you're changing prompts on vibes.
+
+Thank you for reading!
+
+---
+
+> My name is **Sara Nóbrega**. I'm an AI engineer with background in physics.
+
+**Fuente original:** [5 AI Skills That Will Keep Data Scientists Relevant in 2027](https://towardsdatascience.com/5-ai-skills-that-will-keep-data-scientists-relevant-in-2027/)
