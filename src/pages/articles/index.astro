@@ -1,0 +1,80 @@
+---
+import Layout from "../../layouts/Layout.astro";
+import NewsCard from "../../components/NewsCard.astro";
+
+const API_BASE = 'https://portafolio-scraper.deilerc27.workers.dev';
+
+interface ApiArticle {
+    id: number;
+    url: string;
+    title: string;
+    description: string;
+    category: string;
+    author: string;
+    keywords?: string;
+    published_at: string;
+    reading_time?: string;
+    cover_image_url?: string;
+}
+
+async function getOgImage(url: string): Promise<string | undefined> {
+    try {
+        const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const html = await res.text();
+        const match = html.match(/<meta\s+property="og:image"\s+content="([^"]+)"/);
+        return match?.[1];
+    } catch {
+        return undefined;
+    }
+}
+
+const response = await fetch(`${API_BASE}/api/articles?limit=10`);
+const articles: ApiArticle[] = await response.json();
+
+const articlesWithCovers = await Promise.all(
+    articles.map(async (article) => ({
+        ...article,
+        cover_image_url: article.cover_image_url ?? await getOgImage(article.url),
+    }))
+);
+---
+
+<Layout title="Deilhers Perez | Artículos" description="Artículos destacados sobre tecnología e inteligencia artificial" scrollSmooth={false}>
+    <>
+        <section class="border-bottom">
+            <div class="mb-4">
+                <h2 class="text-3xl font-bold mb-8">Artículos Destacados</h2>
+            </div>
+        </section>
+
+        <section class="flex flex-col gap-8">
+            {articlesWithCovers.length > 0 ? (
+                articlesWithCovers.map((article) => {
+                    let tags: string[] = [];
+                    try {
+                        if (article.keywords) {
+                            tags = JSON.parse(article.keywords);
+                        }
+                    } catch {
+                        tags = article.category ? [article.category] : [];
+                    }
+                    return (
+                        <NewsCard
+                            title={article.title}
+                            description={article.description}
+                            publishDate={new Date(article.published_at)}
+                            tags={tags}
+                            url={article.url}
+                            source={article.category ?? 'Towards Data Science'}
+                            coverImageUrl={article.cover_image_url}
+                            author={article.author}
+                            readingTime={article.reading_time}
+                        />
+                    );
+                })
+            ) : (
+                <p>No se encontraron artículos.</p>
+            )}
+        </section>
+    </>
+</Layout>

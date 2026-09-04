@@ -1,0 +1,65 @@
+---
+import ClockIcon from "@/icons/time-line.svg";
+
+interface Props {
+    title: string;
+    description: string;
+    publishDate: Date;
+    tags: string[];
+    url: string;
+    source: string;
+    coverImageUrl?: string;
+    author?: string;
+    readingTime?: string;
+}
+
+const {title, description, publishDate, tags, url, source, coverImageUrl, author, readingTime} = Astro.props as Props;
+---
+
+<a href={url} target="_blank" rel="noopener noreferrer" aria-label={`Leer artículo: ${title}`} class="flex flex-col md:flex-row md:items-center gap-4">
+    <div class="flex-none w-full md:w-40 h-40 overflow-hidden rounded-xl bg-n200 dark:bg-n800">
+        {coverImageUrl ? (
+            <img src={coverImageUrl} alt={title}
+                 class="w-full h-full object-cover rounded-xl" loading="lazy"/>
+        ) : (
+            <div class="w-full h-full flex items-center justify-center text-n400 text-sm font-medium rounded-xl">
+                {source}
+            </div>
+        )}
+    </div>
+    <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-1.5">
+            <div class="flex items-center gap-1">
+                <ClockIcon class="w-4 h-4 text-gray-500"/>
+                <time class="text-sm text-gray-500" datetime={publishDate.toISOString()}>
+                    {publishDate.toLocaleDateString('es-CO', { year: 'numeric', month: 'long', day: 'numeric' })}
+                </time>
+            </div>
+            {readingTime && (
+                <>
+                    <span class="text-gray-500">&middot;</span>
+                    <span class="text-sm text-gray-500">{readingTime}</span>
+                </>
+            )}
+            {tags.length > 0 && (
+                <>
+                    <span class="text-gray-500">&middot;</span>
+                    <div class="flex gap-2">
+                        {tags.map((tag) => (
+                            <span class="text-sm text-gray-500">#{tag}</span>
+                        ))}
+                    </div>
+                </>
+            )}
+        </div>
+        <h3 class="text-xl font-bold">{title}</h3>
+        <div class="flex flex-col gap-4">
+            <p class="text-sm">{description}</p>
+            <div class="flex items-center gap-2">
+                {author && <span class="text-xs text-gray-500">Por {author}</span>}
+                {author && <span class="text-xs text-gray-500">&middot;</span>}
+                <span class="text-xs text-gray-500">{source}</span>
+            </div>
+        </div>
+    </div>
+</a>
