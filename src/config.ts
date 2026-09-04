@@ -34,7 +34,7 @@ export const ME = {
     contactInfo: {
         email: "deilerc27@gmail.com",
         linkedin: "https://www.linkedin.com/in/deilhers-perez",
-        resumeDoc: "resume.pdf",
+        resumeDoc: "Hoja_vida_con_portafolio.pdf",
     },
     aboutMe: "Estudiante de Ingenieria de Sistemas y desarrollador orientado a Inteligencia Artificial, Machine Learning y desarrollo de software. Experiencia practica en desarrollo de soluciones con IA, automatizacion de procesos, integracion de APIs y construccion de aplicaciones web. Interesado en LLM, agentes inteligentes, RAG y tecnologias cloud, con enfoque en aprendizaje continuo, resolucion de problemas y creacion de soluciones escalables.",
 }
