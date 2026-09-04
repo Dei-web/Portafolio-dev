@@ -10,8 +10,8 @@ const education = [
     },
     {
         title: "Certificacion en Ciberseguridad Basico",
-        startDate: "2024-01-01",
-        endDate: "2024-06-30",
+        startDate: "2025-09-12",
+        endDate: "2025-12-31",
         school: "Universidad Libre",
         location: "Barranquilla, Colombia",
         description: "Fundamentos de ciberseguridad, proteccion de datos y buenas practicas de seguridad informatica.",

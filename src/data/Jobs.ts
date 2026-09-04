@@ -14,7 +14,7 @@ const workExperience = [
             "Elaboracion de documentacion tecnica, manuales e informes de experimentos de IA.",
             "Investigacion de nuevos modelos, tecnologias y buenas practicas de IA.",
         ],
-        currentJob: true,
+        currentJob: false,
     },
 ];
 export default workExperience;
