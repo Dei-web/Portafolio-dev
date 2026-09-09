@@ -103,34 +103,35 @@ Por esta razon, el sistema implementa una etapa especifica de seleccion de frame
 El sistema divide el problema en diferentes etapas:
 
 ```
-                    ┌──────────────────┐
-                    │ Grabacion reunion│
-                    └────────┬─────────┘
-                             │
-                 ┌───────────┴───────────┐
-                 │                       │
-                 ▼                       ▼
-           Audio                       Video
-                 │                       │
-                 ▼                       ▼
-          Whisper V3              Extraccion Frames
-                 │                       │
-                 ▼                       ▼
-         Transcripcion             Comparacion
-                 │                       │
-                 │                       ▼
-                 │                Frames relevantes
-                 │                       │
-                 └───────────┬───────────┘
-                             │
-                             ▼
-                    Procesamiento multimodal
-                             │
-                             ▼
-                       Resumen estructurado
-                             │
-                             ▼
-                          Email
+┌─────────────────────┐
+│  Grabacion reunion  │
+└──────────┬──────────┘
+           │
+    ┌──────┴──────┐
+    ▼             ▼
+ Audio          Video
+    │             │
+    ▼             ▼
+Whisper     Extraccion
+  V3          Frames
+    │             │
+    ▼             ▼
+Transcr.    Comparacion
+    │             │
+    │             ▼
+    │        Frames OK
+    │             │
+    └──────┬──────┘
+           ▼
+    Procesamiento
+     multimodal
+           │
+           ▼
+      Resumen
+    estructurado
+           │
+           ▼
+         Email
 ```
 
 La arquitectura busca reducir el volumen de informacion procesada antes de llegar al modelo encargado de generar el resumen.
@@ -184,18 +185,15 @@ Se configuro Whisper para aprovechar GPU y CPU, utilizando las capacidades dispo
 Conceptualmente:
 
 ```
-                 Whisper V3
-                     │
-          ┌──────────┴──────────┐
-          │                     │
-          ▼                     ▼
-        GPU                    CPU
-     Inferencia              Procesamiento
-     acelerada               complementario
-          │                     │
-          └──────────┬──────────┘
-                     ▼
-                Transcripcion
+   Whisper V3
+       │
+  ┌────┴────┐
+  ▼         ▼
+ GPU       CPU
+  │         │
+  └────┬────┘
+       ▼
+ Transcripcion
 ```
 
 Durante las pruebas, el procesamiento mostro una utilizacion aproximada de:
@@ -430,42 +428,44 @@ El usuario recibe el resultado sin necesidad de revisar manualmente la grabacion
 ## Flujo completo
 
 ```
-┌──────────────────────────────┐
-│       REUNION GRABADA        │
-└──────────────┬───────────────┘
-               │
-               ▼
-       ┌───────────────┐
-       │ Separar datos │
-       └───────┬───────┘
-               │
-       ┌───────┴────────┐
-       │                │
-       ▼                ▼
-     AUDIO            VIDEO
-       │                │
-       ▼                ▼
-   Whisper V3      Extraer frames
-       │                │
-       ▼                ▼
-  Transcripcion    Comparacion
-       │                │
-       │                ▼
-       │          Frames relevantes
-       │                │
-       └───────┬────────┘
-               │
-               ▼
-       Procesamiento multimodal
-               │
-               ▼
-       Generacion del resumen
-               │
-               ▼
-        Estructuracion del reporte
-               │
-               ▼
-          Envio Email
+┌───────────────────┐
+│ REUNION GRABADA   │
+└────────┬──────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Separar datos  │
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    ▼         ▼
+  AUDIO     VIDEO
+    │         │
+    ▼         ▼
+Whisper    Extraer
+  V3       frames
+    │         │
+    ▼         ▼
+Transcr.  Comparar
+    │         │
+    │         ▼
+    │     Frames OK
+    │         │
+    └────┬────┘
+         ▼
+   Procesamiento
+    multimodal
+         │
+         ▼
+   Generacion
+    resumen
+         │
+         ▼
+  Estructuracion
+    reporte
+         │
+         ▼
+  Envio Email
 ```
 
 ---
@@ -494,18 +494,19 @@ El usuario recibe el resultado sin necesidad de revisar manualmente la grabacion
 En lugar de modificar internamente el modelo, se utilizaron las capacidades de configuracion de la libreria para controlar como se ejecutaba la inferencia.
 
 ```
-              Hardware disponible
-                     │
-          ┌──────────┴──────────┐
-          ▼                     ▼
-        CPU                    GPU
-          │                     │
-          └──────────┬──────────┘
-                     ▼
-                 Whisper
-                     │
-                     ▼
-              Alta velocidad
+   Hardware
+  disponible
+       │
+  ┌────┴────┐
+  ▼         ▼
+ CPU       GPU
+  │         │
+  └────┬────┘
+       ▼
+   Whisper
+       │
+       ▼
+Alta velocidad
 ```
 
 ### Optimizacion del procesamiento visual
