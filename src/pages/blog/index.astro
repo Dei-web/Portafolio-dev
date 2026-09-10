@@ -26,14 +26,9 @@ const allPost = (await getCollection('posts'))
 
 <Layout title="Deilhers Perez | Blog" description="Una lista de mis publicaciones de blog" scrollSmooth={false}>
     <>
-        <!--Blog Section-->
-        <section class="border-bottom">
-            <div class="mb-4">
-                <h2 class="text-3xl font-bold mb-8">Todos mis Blogs</h2>
-            </div>
-        </section>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Todos mis Blogs</h2>
 
-        <section class="flex flex-col gap-8">
+        <section class="flex flex-col gap-6 sm:gap-8">
             {allPost.length > 0 ? (
                 allPost.map((post: Post) => (
                         <PostCard
