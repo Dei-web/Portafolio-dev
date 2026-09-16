@@ -1,0 +1,39 @@
+- generic [active] [ref=f7e1]:
+  - navigation [ref=f7e2]:
+    - generic [ref=f7e3]:
+      - link "Deilhers Dev" [ref=f7e4] [cursor=pointer]:
+        - /url: /
+      - list [ref=f7e9]:
+        - listitem [ref=f7e10]:
+          - link "Inicio" [ref=f7e11] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f7e12]:
+          - link "Proyectos" [ref=f7e13] [cursor=pointer]:
+            - /url: /projects
+        - listitem [ref=f7e14]:
+          - link "Blog" [ref=f7e15] [cursor=pointer]:
+            - /url: /blog
+        - listitem [ref=f7e16]:
+          - link "Artículos" [ref=f7e17] [cursor=pointer]:
+            - /url: /articles
+  - main [ref=f7e18]:
+    - heading "Todos mis Blogs" [level=2] [ref=f7e19]
+    - link "Leer la publicacion sobre Como construi un Sistema Inteligente de Analisis Multimodal de Reuniones" [ref=f7e21] [cursor=pointer]:
+      - /url: /blog/meeting-analyzer
+      - img "Sistema Inteligente de Analisis Multimodal de Reuniones" [ref=f7e23]
+      - generic [ref=f7e24]:
+        - generic [ref=f7e25]:
+          - time [ref=f7e29]: 9 de sept de 2026
+          - generic [ref=f7e30]:
+            - generic [ref=f7e31]: "#IA"
+            - generic [ref=f7e32]: "#Whisper V3"
+            - generic [ref=f7e33]: "+4"
+        - heading "Como construi un Sistema Inteligente de Analisis Multimodal de Reuniones" [level=3] [ref=f7e34]
+        - paragraph [ref=f7e35]: Un sistema que combina transcripcion automatica con Whisper V3, procesamiento de video, seleccion inteligente de frames y modelos multimodales para generar resumenes estructurados de reuniones automaticamente.
+  - contentinfo [ref=f7e36]:
+    - paragraph [ref=f7e37]: Deilhers Perez de Leon © 2026
+  - generic [ref=f7e40]:
+    - button [ref=f7e41]
+    - button [ref=f7e47]
+    - button [ref=f7e51]
+    - button [ref=f7e59]

@@ -1,0 +1,16 @@
+[      55ms] [WARNING] [JavaScript Warning: "Loading failed for the module with source “http://localhost:4321/src/components/icons/LinkedIn.astro?astro&type=style&index=0&lang.css”." {file: "http://localhost:4321/" line: 1}] @ http://localhost:4321/:1
+[      55ms] [WARNING] [JavaScript Warning: "Loading failed for the module with source “http://localhost:4321/src/components/icons/DownloadArrow.astro?astro&type=style&index=0&lang.css”." {file: "http://localhost:4321/" line: 1}] @ http://localhost:4321/:1
+[      56ms] [WARNING] [JavaScript Warning: "Loading failed for the module with source “http://localhost:4321/src/components/ProfileActionButton.astro?astro&type=script&index=0&lang.ts”." {file: "http://localhost:4321/" line: 1}] @ http://localhost:4321/:1
+[      57ms] [WARNING] [JavaScript Warning: "Loading failed for the module with source “http://localhost:4321/@id/astro:scripts/before-hydration.js”." {file: "http://localhost:4321/" line: 0}] @ http://localhost:4321/:0
+[      60ms] TypeError: error loading dynamically imported module: http://localhost:4321/@id/astro:scripts/before-hydration.js
+    at childrenConnectedCallback (http://localhost:4321/ line 94 > injectedScript:1:3019)
+    at async*connectedCallback (http://localhost:4321/ line 94 > injectedScript:1:2541)
+    at  (http://localhost:4321/ line 94 > injectedScript:1:3850)
+    at  (http://localhost:4321/ line 94 > injectedScript:1:3877)
+    at runScripts (http://localhost:4321/node_modules/astro/dist/transitions/router.js?v=5c788738:94:12)
+    at transition/< (http://localhost:4321/node_modules/astro/dist/transitions/router.js?v=5c788738:333:11)
+    at Async*transition (http://localhost:4321/node_modules/astro/dist/transitions/router.js?v=5c788738:332:56)
+    at async*navigate (http://localhost:4321/node_modules/astro/dist/transitions/router.js?v=5c788738:364:9)
+    at  (http://localhost:4321/node_modules/astro/components/ClientRouter.astro?v=5c788738&astro&type=script&index=0&lang.ts:41:13)
+    at EventListener.handleEvent* (http://localhost:4321/node_modules/astro/components/ClientRouter.astro?v=5c788738&astro&type=script&index=0&lang.ts:19:12)
+[    2413ms] [INFO] Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools @ http://localhost:4321/node_modules/.vite/deps/chunk-OY5C42Z6.js?v=5c788738:21608

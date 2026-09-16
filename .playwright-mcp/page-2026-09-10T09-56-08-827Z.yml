@@ -1,0 +1,77 @@
+- generic [active] [ref=f2e1]:
+  - navigation [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - link "Deilhers Dev" [ref=f2e4] [cursor=pointer]:
+        - /url: /
+      - list [ref=f2e9]:
+        - listitem [ref=f2e10]:
+          - link "Inicio" [ref=f2e11] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f2e12]:
+          - link "Proyectos" [ref=f2e13] [cursor=pointer]:
+            - /url: /projects
+        - listitem [ref=f2e14]:
+          - link "Blog" [ref=f2e15] [cursor=pointer]:
+            - /url: /blog
+        - listitem [ref=f2e16]:
+          - link "Artículos" [ref=f2e17] [cursor=pointer]:
+            - /url: /articles
+  - main [ref=f2e18]:
+    - generic [ref=f2e20]:
+      - img "profile avatar" [ref=f2e22]
+      - generic [ref=f2e23]:
+        - generic [ref=f2e24]:
+          - heading "Deilhers Perez de Leon" [level=1] [ref=f2e25]
+          - paragraph [ref=f2e26]: Desarrollador de Software | IA & Machine Learning
+        - link "GitHub-link" [ref=f2e28] [cursor=pointer]:
+          - /url: https://github.com/Dei-web/
+    - generic [ref=f2e31]:
+      - generic [ref=f2e32]:
+        - heading "1+" [level=3] [ref=f2e33]
+        - paragraph [ref=f2e34]: Años de Experiencia
+      - generic [ref=f2e35]:
+        - heading "3+" [level=3] [ref=f2e36]
+        - paragraph [ref=f2e37]: Proyectos Realizados
+      - generic [ref=f2e38]:
+        - heading "5+" [level=3] [ref=f2e39]
+        - paragraph [ref=f2e40]: Tecnologias Dominadas
+    - generic [ref=f2e41]:
+      - button "Descargar CV" [ref=f2e42] [cursor=pointer]
+      - button [ref=f2e43] [cursor=pointer]:
+        - link "my linkedIn profile link" [ref=f2e44]:
+          - /url: https://www.linkedin.com/in/deilhers-perez
+      - button [ref=f2e45] [cursor=pointer]:
+        - link "send me an email" [ref=f2e46]:
+          - /url: mailto:deilerc27@gmail.com
+    - generic [ref=f2e48]:
+      - tablist [ref=f2e49]:
+        - tab "Portafolio" [selected] [ref=f2e50] [cursor=pointer]
+        - tab "Sobre Mi" [ref=f2e51] [cursor=pointer]
+      - tabpanel "Portafolio" [ref=f2e52]:
+        - generic [ref=f2e53]:
+          - generic [ref=f2e54]:
+            - heading "Proyectos" [level=2] [ref=f2e56]
+            - generic [ref=f2e57]:
+              - link [ref=f2e58] [cursor=pointer]:
+                - /url: /projects/meeting-analyzer
+                - generic [ref=f2e59]:
+                  - img "vista previa de la portada de Sistema Inteligente de Analisis Multimodal de Reuniones" [ref=f2e61]
+                  - generic [ref=f2e62]:
+                    - paragraph [ref=f2e63]: Python, Whisper V3, scikit-image, Computer Vision, Multimodal AI, LLM, GPU Acceleration, Email Automation
+                    - heading "Sistema Inteligente de Analisis Multimodal de Reuniones" [level=4] [ref=f2e65]
+              - link [ref=f2e66] [cursor=pointer]:
+                - /url: /projects/brxan-art
+                - generic [ref=f2e67]:
+                  - img "vista previa de la portada de brxan.art - Portafolio de Diseno Grafico & Arte Digital" [ref=f2e69]
+                  - generic [ref=f2e70]:
+                    - paragraph [ref=f2e71]: React, Vite, TypeScript, Cloudflare Workers, Supabase, Cloudflare R2, Hono, Vercel
+                    - heading "brxan.art - Portafolio de Diseno Grafico & Arte Digital" [level=4] [ref=f2e73]
+          - link "Ver todos los proyectos" [ref=f2e75] [cursor=pointer]:
+            - /url: /projects
+  - contentinfo [ref=f2e76]:
+    - paragraph [ref=f2e77]: Deilhers Perez de Leon © 2026
+  - generic [ref=f2e80]:
+    - button [ref=f2e81]
+    - button [ref=f2e87]
+    - button [ref=f2e91]
+    - button [ref=f2e96]

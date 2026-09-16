@@ -1,0 +1,42 @@
+- generic [active] [ref=f3e1]:
+  - navigation [ref=f3e2]:
+    - generic [ref=f3e3]:
+      - link "Deilhers Dev" [ref=f3e4] [cursor=pointer]:
+        - /url: /
+      - list [ref=f3e9]:
+        - listitem [ref=f3e10]:
+          - link "Inicio" [ref=f3e11] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f3e12]:
+          - link "Proyectos" [ref=f3e13] [cursor=pointer]:
+            - /url: /projects
+        - listitem [ref=f3e14]:
+          - link "Blog" [ref=f3e15] [cursor=pointer]:
+            - /url: /blog
+        - listitem [ref=f3e16]:
+          - link "Artículos" [ref=f3e17] [cursor=pointer]:
+            - /url: /articles
+  - main [ref=f3e18]:
+    - heading "Todos mis Proyectos" [level=2] [ref=f3e21]
+    - generic [ref=f3e22]:
+      - link "Ver proyecto \"Sistema Inteligente de Analisis Multimodal de Reuniones\"" [ref=f3e23] [cursor=pointer]:
+        - /url: /projects/meeting-analyzer
+        - generic [ref=f3e24]:
+          - img "Vista previa de la portada del proyecto \"Sistema Inteligente de Analisis Multimodal de Reuniones\"" [ref=f3e26]
+          - generic [ref=f3e27]:
+            - paragraph [ref=f3e28]: Python, Whisper V3, scikit-image, Computer Vision, Multimodal AI, LLM, GPU Acceleration, Email Automation
+            - heading "Sistema Inteligente de Analisis Multimodal de Reuniones" [level=6] [ref=f3e30]
+      - link "Ver proyecto \"brxan.art - Portafolio de Diseno Grafico & Arte Digital\"" [ref=f3e31] [cursor=pointer]:
+        - /url: /projects/brxan-art
+        - generic [ref=f3e32]:
+          - img "Vista previa de la portada del proyecto \"brxan.art - Portafolio de Diseno Grafico & Arte Digital\"" [ref=f3e34]
+          - generic [ref=f3e35]:
+            - paragraph [ref=f3e36]: React, Vite, TypeScript, Cloudflare Workers, Supabase, Cloudflare R2, Hono, Vercel
+            - heading "brxan.art - Portafolio de Diseno Grafico & Arte Digital" [level=6] [ref=f3e38]
+  - contentinfo [ref=f3e39]:
+    - paragraph [ref=f3e40]: Deilhers Perez de Leon © 2026
+  - generic [ref=f3e43]:
+    - button [ref=f3e44]
+    - button [ref=f3e50]
+    - button [ref=f3e54]
+    - button [ref=f3e62]
