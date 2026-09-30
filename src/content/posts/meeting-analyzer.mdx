@@ -1,7 +1,7 @@
 ---
 author: Deilhers Perez de Leon
-publishDate: 2026-09-09T10:00:00Z
-title: "Como construi un Sistema Inteligente de Analisis Multimodal de Reuniones"
+publishDate: 2026-09-30T10:00:00Z
+title: "Cómo construí un Sistema Inteligente de Análisis Multimodal de Reuniones"
 tags:
   - IA
   - Whisper V3
@@ -18,21 +18,31 @@ cover:
   alt: 'Sistema Inteligente de Analisis Multimodal de Reuniones'
 ---
 
-## Proximamente
+Hace poco terminé la implementación completa de mi primer **analizador inteligente de reuniones**, un sistema multiagente diseñado para ayudar al usuario final a comprender y contextualizar una reunión sin necesidad de invertir horas revisando el video completo.
 
-Este blog esta en desarrollo. Aqui compartire en detalle como construi el **Sistema Inteligente de Analisis Multimodal de Reuniones**, un pipeline automatizado que convierte grabaciones de reuniones en resumenes estructurados combinando audio y video.
+La idea principal es sencilla: muchas reuniones pueden durar horas y no todo su contenido tiene el mismo nivel de relevancia. Por eso, el sistema busca generar un **resumen estructurado**, acompañado de **notas técnicas y verificables a lo largo de la duración del video**, permitiendo identificar los momentos que realmente aportan valor.
 
-### Lo que cubriremos:
+Algunos de los aspectos más interesantes durante su construcción fueron:
 
-- **Transcripcion con Whisper V3**: Como procesar audio de reuniones con optimizacion GPU/CPU
-- **Procesamiento de video**: Extraccion y seleccion inteligente de frames relevantes
-- **Comparacion de frames**: Eliminacion de redundancias visuales para reducir costos de procesamiento
-- **Procesamiento multimodal**: Combinar transcripcion con contexto visual para una comprension mas completa
-- **Generacion de resumenes**: Uso de LLMs para crear documentos estructurados
-- **Automatizacion**: Pipeline completo desde la grabacion hasta el envio por email
+* Aplicación de principios de **Computer Vision**.
+* Implementación y uso de **LLM locales**.
+* Optimización de prompts orientados al **resumen y extracción de información**.
+* Diseño de una estrategia para determinar qué información visual realmente aporta contexto.
 
-El proyecto ya esta documentado en la seccion de [proyectos](/projects/meeting-analyzer). Este blog profundizara en los detalles tecnicos, decisiones de implementacion y lecciones aprendidas durante el desarrollo.
+El proyecto estuvo pausado durante un tiempo. Al retomarlo, tuve la oportunidad de replantear algunas de sus partes utilizando técnicas más actuales.
+
+Uno de los cambios que más me gustó fue pasar de un enfoque sencillo de **seleccionar frames periódicamente** a intentar determinar de manera más deliberada **qué frames contienen información relevante para el análisis**. Esto permitió que el sistema no dependiera únicamente de una selección uniforme de imágenes, sino que buscara identificar elementos visuales que realmente pudieran aportar contexto al resumen.
+
+El resultado final fue un proyecto que disfruté bastante, especialmente porque representó mi **primer acercamiento práctico a Computer Vision aplicado a un problema real**.
+
+El cierre fue un poco abrupto, principalmente porque no pude implementar la **API de Microsoft Graph**, que habría permitido mejorar considerablemente la solución y reducir la dependencia de modelos locales para algunas tareas, especialmente la transcripción.
+
+Aun así, considero que fue una experiencia bastante valiosa para explorar **sistemas multimodales, agentes, procesamiento de video, LLMs locales y Computer Vision**.
+
+Gracias por leer.
+
+**deidev :)**
 
 ---
 
-*Vuelve pronto para leer el articulo completo.*
+*Puedes ver la documentación técnica completa del sistema en la sección de [proyectos](/projects/meeting-analyzer).*
