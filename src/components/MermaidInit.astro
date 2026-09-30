@@ -1,0 +1,106 @@
+---
+// MermaidInit: convierte bloques ```mermaid en diagramas SVG responsive.
+// Se importa en src/pages/projects/[id].astro (y blog si se desea).
+// No renderiza nada por sí mismo, solo aporta el <script> cliente.
+---
+
+<script type="module">
+  // Nota: se importa desde CDN ESM (misma versión que el dep npm `mermaid`)
+  // porque Astro no empaqueta bare imports dentro de <script> inline.
+  // Si el CDN falla (offline), el bloque <details> con el código queda como fallback.
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.esm.min.mjs';
+
+  const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true;
+
+  mermaid.initialize({
+    startOnLoad: false,
+    theme: prefersDark ? 'dark' : 'default',
+    securityLevel: 'loose',
+    flowchart: { htmlLabels: true, useMaxWidth: true, curve: 'basis' },
+    themeVariables: prefersDark
+      ? {
+          primaryColor: '#1e293b',
+          primaryTextColor: '#E9EBEC',
+          primaryBorderColor: '#FBD144',
+          lineColor: '#FBD144',
+          secondaryColor: '#0C151D',
+          tertiaryColor: '#171F26',
+          background: '#0C151D',
+          mainBkg: '#171F26',
+          nodeBorder: '#FBD144',
+          clusterBkg: '#171F26',
+          edgeLabelBackground: '#0C151D',
+        }
+      : {
+          primaryColor: '#FFF7DB',
+          primaryTextColor: '#171F26',
+          primaryBorderColor: '#b89100',
+          lineColor: '#555555',
+          secondaryColor: '#ffffff',
+          tertiaryColor: '#E9EBEC',
+          background: '#ffffff',
+          mainBkg: '#ffffff',
+          edgeLabelBackground: '#ffffff',
+        },
+  });
+
+  async function renderMermaidBlocks() {
+    // Shiki (Astro 5) renderiza las cercas ```mermaid como
+    // <pre data-language="mermaid"><code><span class="line">… — sin clase language-mermaid.
+    const blocks = document.querySelectorAll('pre[data-language="mermaid"]');
+    for (let i = 0; i < blocks.length; i++) {
+      const pre = blocks[i];
+      if (!(pre instanceof HTMLElement) || pre.dataset.mermaidDone) continue;
+      // textContent decodifica las entidades HTML de Shiki (&quot; &gt; …)
+      const graph = pre.textContent ?? '';
+      if (!graph.trim() || !/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|mindmap)/.test(graph)) continue;
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'mermaid-block';
+      wrapper.setAttribute('role', 'img');
+      wrapper.setAttribute(
+        'aria-label',
+        pre.getAttribute('data-title') || 'Diagrama de arquitectura'
+      );
+
+      const diagram = document.createElement('div');
+      diagram.className = 'mermaid';
+      diagram.textContent = graph;
+      wrapper.appendChild(diagram);
+
+      // Detalle accesible / fallback sin JS: conserva el código original
+      const fallback = document.createElement('details');
+      fallback.className = 'mermaid-fallback';
+      const summary = document.createElement('summary');
+      summary.textContent = 'Ver código del diagrama';
+      const fallbackPre = document.createElement('pre');
+      const fallbackCode = document.createElement('code');
+      fallbackCode.textContent = graph;
+      fallbackPre.appendChild(fallbackCode);
+      fallback.appendChild(summary);
+      fallback.appendChild(fallbackPre);
+      wrapper.appendChild(fallback);
+
+      pre.replaceWith(wrapper);
+
+      try {
+        await mermaid.run({ nodes: [diagram] });
+        pre.dataset.mermaidDone = 'true';
+      } catch (err) {
+        console.error('Mermaid render error:', err);
+        // Si falla, muestra el fallback abierto
+        fallback.open = true;
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderMermaidBlocks);
+  } else {
+    renderMermaidBlocks();
+  }
+
+  // Re-render al navegar con View Transitions de Astro
+  document.addEventListener('astro:page-load', renderMermaidBlocks);
+  document.addEventListener('astro:after-swap', renderMermaidBlocks);
+</script>

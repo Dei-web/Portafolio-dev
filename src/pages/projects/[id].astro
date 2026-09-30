@@ -5,6 +5,7 @@ import { Image } from "astro:assets";
 import Layout from "../../layouts/Layout.astro";
 import BackBtn from "@/components/BackBtn.astro";
 import BackToTop from "../../components/BackToTop.astro";
+import MermaidInit from "@/components/MermaidInit.astro";
 
 export async function getStaticPaths() {
     const posts = await getCollection('projects');
@@ -39,25 +40,40 @@ const { Content } = await render(post);
             Visitar el proyecto ↗
         </a>
 
-        <article id="article" class="mt-8 prose dark:prose-invert">
+        <article id="article" class="mt-8 prose dark:prose-invert prose-sm sm:prose-base max-w-full min-w-0 overflow-hidden">
             <Content/>
         </article>
         <BackToTop />
+        <MermaidInit />
     </>
 </Layout>
 
 <style is:global>
     h2 {
-        @apply text-2xl font-bold my-4;
+        @apply text-xl sm:text-2xl font-bold my-4 leading-tight;
     }
-    
-    pre {
+
+    #article {
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    #article pre {
         @apply overflow-x-auto;
         max-width: 100%;
+        -webkit-overflow-scrolling: touch;
     }
-    
-    code {
+
+    #article pre > code {
         @apply text-xs sm:text-sm;
+        font-size: clamp(11px, 3.2vw, 0.875rem);
+    }
+
+    #article table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 </style>
 

@@ -102,36 +102,19 @@ Por esta razon, el sistema implementa una etapa especifica de seleccion de frame
 
 El sistema divide el problema en diferentes etapas:
 
-```
-┌─────────────────────┐
-│  Grabacion reunion  │
-└──────────┬──────────┘
-           │
-    ┌──────┴──────┐
-    ▼             ▼
- Audio          Video
-    │             │
-    ▼             ▼
-Whisper     Extraccion
-  V3          Frames
-    │             │
-    ▼             ▼
-Transcr.    Comparacion
-    │             │
-    │             ▼
-    │        Frames OK
-    │             │
-    └──────┬──────┘
-           ▼
-    Procesamiento
-     multimodal
-           │
-           ▼
-      Resumen
-    estructurado
-           │
-           ▼
-         Email
+```mermaid
+flowchart TB
+    Grab["Grabación reunión"] --> Audio["Audio"]
+    Grab --> Video["Video"]
+    Audio --> Whisper["Whisper V3"]
+    Video --> Extraccion["Extracción frames"]
+    Whisper --> Transcr["Transcripción"]
+    Extraccion --> Comparacion["Comparación"]
+    Comparacion --> FramesOK["Frames relevantes"]
+    Transcr --> Multi["Procesamiento<br/>multimodal"]
+    FramesOK --> Multi
+    Multi --> Resumen["Resumen<br/>estructurado"]
+    Resumen --> Email["Email"]
 ```
 
 La arquitectura busca reducir el volumen de informacion procesada antes de llegar al modelo encargado de generar el resumen.
@@ -184,16 +167,12 @@ Se configuro Whisper para aprovechar GPU y CPU, utilizando las capacidades dispo
 
 Conceptualmente:
 
-```
-   Whisper V3
-       │
-  ┌────┴────┐
-  ▼         ▼
- GPU       CPU
-  │         │
-  └────┬────┘
-       ▼
- Transcripcion
+```mermaid
+flowchart TB
+    W["Whisper V3"] --> GPU["GPU"]
+    W --> CPU["CPU"]
+    GPU --> T["Transcripción"]
+    CPU --> T
 ```
 
 Durante las pruebas, el procesamiento mostro una utilizacion aproximada de:
@@ -234,30 +213,11 @@ Si todos los frames representan practicamente la misma informacion, procesarlos 
 
 El sistema compara los frames y determina cuales representan cambios suficientemente relevantes.
 
-```
-Frames originales
-
-████████████████████████████
-████████████████████████████
-████████████████████████████
-████████████████████████████
-████████████████████████████
-████████████████████████████
-████████████████████████████
-
-              ↓
-
-Comparacion
-
-              ↓
-
-Frames relevantes
-
-████████████████████████████
-                         ↓
-████████████████████████████
-                         ↓
-████████████████████████████
+```mermaid
+flowchart TB
+    Orig["Frames originales<br/>(ej. 1000 frames)"] --> Comp["Comparación<br/>(SSIM + bordes)"]
+    Comp --> Rel["Frames relevantes<br/>(ej. 150 frames)"]
+    Rel --> Multi["Procesamiento multimodal"]
 ```
 
 Esto reduce significativamente la cantidad de imagenes que posteriormente deben ser procesadas por el modelo multimodal.
@@ -295,29 +255,10 @@ corners = corner_harris(gray_frame)
 
 No todo cambio de frame implica informacion nueva. El umbral de SSIM se configura para ignorar cambios menores (animaciones de cursor, transiciones suaves) y conservar solo cambios estructurales significativos (nueva diapositiva, nuevo documento, cambio de aplicacion).
 
-**Cambio irrelevante:**
-
-```
-Frame A → Frame B
-
-Misma diapositiva
-Misma informacion
-Misma interfaz
-
-Se descarta.
-```
-
-**Cambio relevante:**
-
-```
-Frame A → Frame B
-
-Diapositiva 1
-       ↓
-Diapositiva 2
-
-Se conserva.
-```
+| Caso | Frame A → Frame B | Resultado |
+|---|---|---|
+| **Cambio irrelevante** | Misma diapositiva, misma información, misma interfaz | Se descarta |
+| **Cambio relevante** | Diapositiva 1 → Diapositiva 2 | Se conserva |
 
 Otros ejemplos de informacion visual potencialmente relevante:
 
@@ -343,40 +284,20 @@ Una persona puede decir: "Como pueden observar en esta grafica..."
 
 La transcripcion por si sola no contiene la grafica. El frame correspondiente permite recuperar el contexto visual mencionado durante la conversacion.
 
-```
-Audio:
-"Como pueden observar en esta grafica..."
-
-            +
-
-Imagen:
-[Grafica mostrada durante la reunion]
-
-            ↓
-
-Contexto completo
+```mermaid
+flowchart TB
+    A["Audio<br/>'Como pueden observar<br/>en esta gráfica…'"] --> C["Contexto completo"]
+    I["Imagen<br/>(gráfica mostrada<br/>en la reunión)"] --> C
 ```
 
 ### 8. Contexto temporal
 
 Otro componente importante es mantener la relacion temporal entre el audio y las imagenes.
 
-```
-00:12:35
-"Vamos a revisar los resultados del ultimo mes."
-
-        ↓
-
-00:12:40
-
-[Frame relevante]
-Grafica de resultados
-
-        ↓
-
-00:13:05
-
-"Como pueden observar..."
+```mermaid
+flowchart TB
+    T1["00:12:35<br/>'Vamos a revisar<br/>los resultados…'"] --> F["00:12:40<br/>Frame relevante<br/>(gráfica de resultados)"]
+    F --> T2["00:13:05<br/>'Como pueden observar…'"]
 ```
 
 Esto permite que el sistema no solamente conozca que aparecio en pantalla, sino tambien cuando aparecio y que se estaba hablando en ese momento.
@@ -387,18 +308,17 @@ Despues de procesar la informacion, el sistema genera un resumen estructurado de
 
 El resultado puede incluir informacion como:
 
-```
-Resumen de la reunion
-│
-├── Objetivo
-├── Temas tratados
-├── Puntos importantes
-├── Decisiones tomadas
-├── Problemas identificados
-├── Resultados
-├── Acciones pendientes
-├── Responsables
-└── Conclusiones
+```mermaid
+flowchart TB
+    R["Resumen de la reunión"] --> O["Objetivo"]
+    R --> T["Temas tratados"]
+    R --> P["Puntos importantes"]
+    R --> D["Decisiones tomadas"]
+    R --> Prob["Problemas identificados"]
+    R --> Res["Resultados"]
+    R --> Acc["Acciones pendientes"]
+    R --> Resp["Responsables"]
+    R --> Con["Conclusiones"]
 ```
 
 El objetivo no es simplemente resumir la transcripcion. El sistema intenta construir una representacion de lo que realmente ocurrio durante la reunion, utilizando tanto informacion hablada como visual.
@@ -407,14 +327,11 @@ El objetivo no es simplemente resumir la transcripcion. El sistema intenta const
 
 Una vez generado el resumen, el sistema automatiza la entrega del resultado.
 
-```
-Resumen generado
-       ↓
-Preparacion del documento
-       ↓
-Servicio de correo
-       ↓
-Usuario
+```mermaid
+flowchart TB
+    G["Resumen generado"] --> P["Preparación del documento"]
+    P --> S["Servicio de correo"]
+    S --> U["Usuario"]
 ```
 
 El usuario recibe el resultado sin necesidad de revisar manualmente la grabacion.
@@ -427,45 +344,21 @@ El usuario recibe el resultado sin necesidad de revisar manualmente la grabacion
 
 ## Flujo completo
 
-```
-┌───────────────────┐
-│ REUNION GRABADA   │
-└────────┬──────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Separar datos  │
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-  AUDIO     VIDEO
-    │         │
-    ▼         ▼
-Whisper    Extraer
-  V3       frames
-    │         │
-    ▼         ▼
-Transcr.  Comparar
-    │         │
-    │         ▼
-    │     Frames OK
-    │         │
-    └────┬────┘
-         ▼
-   Procesamiento
-    multimodal
-         │
-         ▼
-   Generacion
-    resumen
-         │
-         ▼
-  Estructuracion
-    reporte
-         │
-         ▼
-  Envio Email
+```mermaid
+flowchart TB
+    RG["Reunión grabada"] --> Sep["Separar datos"]
+    Sep --> AU["Audio"]
+    Sep --> VI["Video"]
+    AU --> W["Whisper V3"]
+    VI --> E["Extraer frames"]
+    W --> TR["Transcripción"]
+    E --> CO["Comparar"]
+    CO --> FOK["Frames relevantes"]
+    TR --> MM["Procesamiento<br/>multimodal"]
+    FOK --> MM
+    MM --> GR["Generación resumen"]
+    GR --> ER["Estructuración reporte"]
+    ER --> EM["Envío email"]
 ```
 
 ---
@@ -493,20 +386,13 @@ Transcr.  Comparar
 
 En lugar de modificar internamente el modelo, se utilizaron las capacidades de configuracion de la libreria para controlar como se ejecutaba la inferencia.
 
-```
-   Hardware
-  disponible
-       │
-  ┌────┴────┐
-  ▼         ▼
- CPU       GPU
-  │         │
-  └────┬────┘
-       ▼
-   Whisper
-       │
-       ▼
-Alta velocidad
+```mermaid
+flowchart TB
+    HW["Hardware disponible"] --> CPU["CPU"]
+    HW --> GPU["GPU"]
+    CPU --> W["Whisper"]
+    GPU --> W
+    W --> V["Alta velocidad"]
 ```
 
 ### Optimizacion del procesamiento visual
@@ -515,22 +401,18 @@ La segunda optimizacion importante fue reducir la cantidad de frames.
 
 **Sin filtrado:**
 
-```
-1000 frames
-      ↓
-1000 imagenes procesadas
+```mermaid
+flowchart TB
+    A["1000 frames"] --> B["1000 imágenes procesadas"]
 ```
 
 **Con seleccion:**
 
-```
-1000 frames
-      ↓
-Comparacion
-      ↓
-150 frames relevantes
-      ↓
-Procesamiento multimodal
+```mermaid
+flowchart TB
+    F["1000 frames"] --> C["Comparación"]
+    C --> R["150 frames relevantes"]
+    R --> M["Procesamiento multimodal"]
 ```
 
 Esta estrategia reduce:
@@ -561,14 +443,11 @@ El segundo enfoque proporciona mayor contexto.
 
 Analizar cada frame seria una estrategia costosa y redundante.
 
-```
-Muchos frames
-      ↓
-Filtrado
-      ↓
-Pocos frames relevantes
-      ↓
-Modelo multimodal
+```mermaid
+flowchart TB
+    MF["Muchos frames"] --> F["Filtrado"]
+    F --> PF["Pocos frames relevantes"]
+    PF --> MM["Modelo multimodal"]
 ```
 
 Esto permite concentrar los recursos de computo en informacion que tiene mayor probabilidad de aportar valor.
@@ -596,35 +475,25 @@ Extraer decisiones, tareas, problemas, responsables y proximos pasos.
 
 ## Estructura del Proyecto
 
-```
-meeting-analyzer/
-│
+<pre class="file-tree"><code>meeting-analyzer/
 ├── src/
 │   ├── audio/
 │   │   ├── transcription.py
 │   │   └── whisper.py
-│   │
 │   ├── video/
 │   │   ├── frame_extractor.py
 │   │   └── frame_comparator.py
-│   │
 │   ├── multimodal/
 │   │   └── analyzer.py
-│   │
 │   ├── summary/
 │   │   └── generator.py
-│   │
 │   ├── email/
 │   │   └── sender.py
-│   │
 │   └── pipeline.py
-│
 ├── tests/
-│
 ├── requirements.txt
 ├── .env.example
-└── README.md
-```
+└── README.md</code></pre>
 
 ---
 

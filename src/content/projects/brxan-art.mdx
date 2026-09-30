@@ -41,33 +41,13 @@ El objetivo principal era crear una plataforma elegante y performante para exhib
 
 El proyecto sigue una arquitectura **serverless de tres capas** con coste operativo de **$0/mes** dentro de los planes gratuitos de cada proveedor.
 
-```
-                   +---------------------------+
-                   |       USUARIO FINAL       |
-                   +-------------+-------------+
-                                 |
-                                 | HTTPS
-                                 v
-              +-------------------------------------+
-              |          VERCEL (CDN Global)        |
-              |   React SPA + Rewrites (/api ->)    |
-              +-------------------------------------+
-                   |                        |
-            HTML/CSS/JS             /api/* (rewrite)
-                   |                        |
-                   v                        v
-            +-------------+    +---------------------------+
-            |  Navegador  |    |  CLOUDFLARE WORKERS       |
-            |  (SPA)      |    |  Serverless API (Hono)    |
-            +-------------+    +-----------+---------------+
-                                           |
-                              +------------+-------------+
-                              |                          |
-                              v                          v
-                 +---------------------+    +------------------------+
-                 |     SUPABASE        |    |    CLOUDFLARE R2       |
-                 |  PostgreSQL + REST  |    |   Object Storage       |
-                 +---------------------+    +------------------------+
+```mermaid
+flowchart TB
+    User["Usuario Final"] -->|HTTPS| Vercel["Vercel — CDN Global<br/>React SPA + Rewrites /api"]
+    Vercel -->|HTML / CSS / JS| Browser["Navegador<br/>(SPA)"]
+    Vercel -->|/api/* rewrite| Workers["Cloudflare Workers<br/>Serverless API (Hono)"]
+    Workers --> Supabase["Supabase<br/>PostgreSQL + REST"]
+    Workers --> R2["Cloudflare R2<br/>Object Storage"]
 ```
 
 ### Por que esta arquitectura
@@ -114,18 +94,18 @@ El proyecto sigue una arquitectura **serverless de tres capas** con coste operat
 
 El Worker expone una API REST bajo el framework **Hono** con los siguientes endpoints:
 
-```
-POST   /api/upload              Subir imagen a R2 (multipart/form-data)
-GET    /api/projects            Listar proyectos (con imagenes anidadas)
-GET    /api/projects/:id        Detalle de proyecto
-POST   /api/projects            Crear proyecto (requiere x-admin-password)
-PUT    /api/projects/:id        Actualizar proyecto (requiere x-admin-password)
-DELETE /api/projects/:id        Eliminar proyecto + imagenes R2
-GET    /api/comments            Listar comentarios
-POST   /api/comments            Crear comentario
-DELETE /api/comments/:id        Eliminar comentario
-POST   /api/admin/login         Login con contrasena
-```
+| Método | Ruta | Descripción |
+|---|---|---|
+| `POST` | `/api/upload` | Subir imagen a R2 (multipart/form-data) |
+| `GET` | `/api/projects` | Listar proyectos (con imágenes anidadas) |
+| `GET` | `/api/projects/:id` | Detalle de proyecto |
+| `POST` | `/api/projects` | Crear proyecto (requiere `x-admin-password`) |
+| `PUT` | `/api/projects/:id` | Actualizar proyecto (requiere `x-admin-password`) |
+| `DELETE` | `/api/projects/:id` | Eliminar proyecto + imágenes R2 |
+| `GET` | `/api/comments` | Listar comentarios |
+| `POST` | `/api/comments` | Crear comentario |
+| `DELETE` | `/api/comments/:id` | Eliminar comentario |
+| `POST` | `/api/admin/login` | Login con contraseña |
 
 ### Cloudflare R2 - Almacenamiento de Imagenes
 
@@ -152,30 +132,25 @@ El archivo `vercel.json` configura rewrites criticos que transparentan las llama
 
 ## Estructura del Proyecto
 
-```
-portafolio_bryan/
-|
-|-- src/                          # SPA React
-|   |-- App.jsx                   # Router principal
-|   |-- components/
-|   |   |-- Admin/                # Panel de administracion
-|   |   |-- ProjectPage.jsx       # Detalle con modal
-|   |   |-- PinDetail.jsx         # Modal imagen + comentarios
-|   |   |-- ProjectsCovers.jsx    # Grilla de portadas
-|   |   +-- Landing.jsx, Hero.jsx, About.jsx...
-|   |-- context/AdminContext.jsx  # Estado global de sesion admin
-|   |-- hooks/                    # Hooks personalizados
-|   +-- data/data.js              # Contenido estatico
-|
-|-- worker/                       # Cloudflare Worker (API)
-|   |-- src/index.ts              # Hono app: rutas /api/*
-|   |-- wrangler.toml             # Config del Worker
-|   +-- seed.sh                   # Subida de imagenes a R2
-|
-|-- supabase/schema.sql           # Esquema de la base de datos
-|-- vercel.json                   # Rewrites SPA + proxy a Workers
-+-- vite.config.js                # Config Vite
-```
+<pre class="file-tree"><code>portafolio_bryan/
+├── src/                  # SPA React
+│   ├── App.jsx           # Router principal
+│   ├── components/
+│   │   ├── Admin/        # Panel administración
+│   │   ├── ProjectPage.jsx
+│   │   ├── PinDetail.jsx # Modal + comentarios
+│   │   ├── ProjectsCovers.jsx
+│   │   └── Landing, Hero, About…
+│   ├── context/AdminContext.jsx
+│   ├── hooks/            # Hooks personalizados
+│   └── data/data.js      # Contenido estático
+├── worker/               # Cloudflare Worker (API)
+│   ├── src/index.ts      # Hono app: rutas /api/*
+│   ├── wrangler.toml
+│   └── seed.sh           # Subida de imágenes a R2
+├── supabase/schema.sql
+├── vercel.json           # Rewrites SPA + proxy
+└── vite.config.js</code></pre>
 
 ---
 
