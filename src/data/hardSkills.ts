@@ -35,6 +35,11 @@ const hardSkills = [
     icon: "webdev"
   },
   {
+    name: "Go",
+    description: "Lenguaje concurrente para crear aplicaciones robustas y multiplataforma",
+    icon: "go"
+  },
+  {
     name: "Astro",
     description: "Generador de sitios estaticos para portafolios y sitios rapidos",
     icon: "astro_dark"
